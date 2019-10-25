@@ -1,0 +1,27 @@
+#update2{font-size: 20px;
+        background-color:orange
+}
+#reset{font-size: 20px;
+        background-color:orange
+}
+#update{font-size: 20px;
+        background-color:orange
+}
+.shiny-progress .progress-text {color: white; 
+                                background-color:orange
+}
+#longlat{
+  font-size: 20px; 
+}
+
+#map1{
+    cursor: pointer;
+}
+
+h5{font-size: 14px;
+}
+
+selectize-input{
+  overflow: visible;
+}
+

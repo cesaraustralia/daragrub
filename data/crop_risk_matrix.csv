@@ -1,0 +1,5 @@
+﻿Pest,Crop,ModerateRisk,HighRisk,Notes
+Common_Armyworm,Wheat,"Establishment to early plant senescence  (L5, L6)",,"Risk potential does not consider densities of pests, only the plant and pest life-stages associated with moderate or high damage potential if sufficient densities are reached. This tool aims to prioritise monitorring efforts."
+Common_Armyworm,Barley,"Establishment to early plant senescence  (L5, L6)","Emergence to heading (L1, L2, L3)","Damaging pest life-stages (egg, L[number],  pupa, adult) must be specified within bracket and separated by a space and comma"
+Native_Budworm,Canola ,"Podding to maturity (L1, L2, L3)","Crop maturation (L4, L5, L6, adult)",
+Native_Budworm,Faba bean,,"Podding to maturity (L2, L3, L4, L5, L6)",
