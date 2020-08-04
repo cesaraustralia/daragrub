@@ -3,3 +3,5 @@ Common_Armyworm,Wheat,"Establishment to early plant senescence  (L5, L6)",,"Risk
 Common_Armyworm,Barley,"Establishment to early plant senescence  (L5, L6)","Emergence to heading (L1, L2, L3)","Damaging pest life-stages (egg, L[number],  pupa, adult) must be specified within bracket and separated by a space and comma"
 Native_Budworm,Canola ,"Podding to maturity (L1, L2, L3)","Crop maturation (L4, L5, L6, adult)",
 Native_Budworm,Faba bean,,"Podding to maturity (L2, L3, L4, L5, L6)",
+Fall_Armyworm,Maize,"Establishment to early plant senescence  (L5, L6)",,
+Fall_Armyworm,Sorghum,"Establishment to early plant senescence  (L5, L6)",,

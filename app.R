@@ -56,10 +56,12 @@ ui <-
                      tabPanel("Assess risk",
                           fluidRow(
                             column(width = 4,offset =0, "",
+                                   
                               selectInput("species", label = h4("1. Species observed:"), 
                                           choices = bugList, 
                                           selected = bugList[[1]],
                                           width = '100%'),
+                              imageOutput("preImage", height = "50%"),
                               dateInput('startDate', label = h4("2. Date pest observed:"), 
                                         value = paste0(curYear,'-6-1'), 
                                         min = paste0(curYear,'-1-1'), 
@@ -82,36 +84,43 @@ ui <-
                               HTML('<br/>'),
                               h4('7. Download data as table'),
                               downloadButton('downloadData.csv', 'Download'),
-                              HTML('<br/>')
+                              HTML('<br/>'),
+                              column(8, offset=2, tableOutput('table')),
+                              HTML('<br/>'),HTML('<br/>'),
+                              HTML('<br/>'),HTML('<br/>'),
+                              plotOutput("phenology")
                               
-                            ),
-                            
-                            column(8, 
-                                   fluidRow( 
-                                     imageOutput("preImage", height = 300),
-                                     HTML('<br/>'),HTML('<br/>'),
-                                     HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                     HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                     HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                       # style = "position:relative",
-                                       plotOutput("phenology")
-                                     
-                                   )
-                                   ),
-                            column(6, offset = 2, 
-                                   # HTML(paste(rep('<br/>', 10))),
-                                   HTML('<br/>'),HTML('<br/>'),
-                                   HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                   HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                   HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
-                                   
-                                   tableOutput('table')
-                                   )
+                              
+                              
+                            )
+                            # ,
+                            # 
+                            # column(8, 
+                            #        fluidRow( 
+                            #         
+                            #          # HTML('<br/>'),HTML('<br/>'),
+                            #          # HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #          # HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #          # HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #            # style = "position:relative",
+                            #            plotOutput("phenology")
+                            #          
+                            #        )
+                            #        ),
+                            # column(6, offset = 2, 
+                            #        # HTML(paste(rep('<br/>', 10))),
+                            #        HTML('<br/>'),HTML('<br/>'),
+                            #        HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #        HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #        HTML('<br/>'),HTML('<br/>'),HTML('<br/>'),
+                            #        
+                            #        tableOutput('table')
+                            #        )
                           )    
                      ),
            ################ ABOUT UI #######################
            tabPanel("About",
-                    fluidRow(column(5,'',
+                    fluidRow(column(7,'',
                                     h1('DARAGRUB'),
                                     h2('Description'),
                                     h4('Effective management of insect pests in crops requires an understanding of the rate at which insects develop. For example, it might be important to know how long a damaging stage of a pest may persist in the crop, or when eggs might hatch. The DARAGRUB program provides a convenient and readily available means of predicting development times using different insect models. Gridded climatic data of daily temperatures is used in these models to generate estimates of the dates of occurrence for each stage throughout the whole life-cycle of an insect.'),
@@ -120,9 +129,11 @@ ui <-
                                     h2('Insect data'),
                                     h4('The rate of growth and development of insects and other invertebrates is strongly influenced by temperature. The temperature dependence of development varies between species, thus each species has a unique temperature response. Indeed, even within a species the temperature dependence may vary between different stages. This is accounted for in the model by assigning unique developmental functions to each stage of each insect. This functional response is derived from empirical data.'),
                                     h4('The temperature - growth rate relationship for each of the pest species modelled in this platform can be viewed opposite. The species-specific variables and rate functions for each were derived from published records, and can be varied in consultation with Dr James Maino. Similarly, new insect models for different pests can be added to this platform at any time, when based on published empirical data.'),
-                                    h4('For the maintenance and updating of this tool, please contact Dr James Maino (info@cesaraustralia.com).
-                                       ')
-                                    ),
+                                    h4("This program was developed using many sources of data and with intellectual input from international researchers and representatives of QDAF, SARDI, DPIRD, cesar, and NSW DPI. Development of the tool was supported through funding from GRDC. Notably, the framework builds on past international and domestic efforts to predict the phenology of crop pests such as Agriculture Victoria's original DARABUG program and UC IPM (ipm.ucanr.edu). Individuals who provided input were Garry McDonald, Melina Miles, Julia Severi, Dusty Severtson and Jessica Lye. The tool was developed by James Maino, who can be contacted for any maintenance or technical requirements (info@cesaraustralia.com).
+                                       "),
+                                    HTML('<br/>'),
+                             h5("McDonald G (1990) 'DARUBUG: a computer program for simulating development rates of insect pests in Victorian agriculture.' (Technical Report - Department of Agriculture and Rural Affairs (Melbourne) Melbourne)")
+                    ),
                              column(5,'',
                                     selectInput("species3", label = h4("Select species:"), 
                                                 choices = bugList, 
