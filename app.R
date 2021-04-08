@@ -1,7 +1,8 @@
 library(tidyverse)
 library(shiny)
 library(shinythemes)
-# library(maptools)
+library(maptools)
+library(rgeos)
 # library(terra)
 # library(raster)
 library(leaflet)
@@ -83,7 +84,7 @@ select_option <- c(
 
 # ui ----------------------------------------------------------------------
 ui <- shinyUI(
-  navbarPage("LifeStage", selected = "Monitoring assist", theme = shinytheme("journal"), # slate
+  navbarPage("PESTIMATE", selected = "Monitoring assist", theme = shinytheme("journal"), # slate
              
              
              # Lifestage panel ---------------------------------------------------------
@@ -128,7 +129,6 @@ ui <- shinyUI(
                              
                              
                              
-                             
                              # update based on user input
                              shiny::htmlOutput("stagetitle"),
                              
@@ -141,15 +141,11 @@ ui <- shinyUI(
                              
                              
                              # uiOutput("date_ui"), # add UI for the second option
-                             HTML("<br/>"),
+                             # HTML("<br/>"),
                              shiny::htmlOutput("maptitle"),
                              span(textOutput("checklatlong"), style = "color:red"),
                              # add a leaflet map
-                             leafletOutput("smap", height = 300),
-                             
-                             # HTML("<br/>"),
-                             # shiny::htmlOutput("runtitle"),
-                             # actionButton("update", "Run")
+                             leafletOutput("smap", height = 300)
                              
                       ),
                       
