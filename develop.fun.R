@@ -1,4 +1,7 @@
-develop<-function(Tmax, Tmin, startDay, startStage, insect){
+# startDay = crop risk period
+# startStage = pest risk life
+
+develop <- function(Tmax, Tmin, startDay, startStage, insect){
   # arguments:
   # Tmax: a raster stack or list of daily max temperatures for 365 days [365][D]
   # Tmin: a raster stack or list of daily min temperatures for 365 days [365][D]
