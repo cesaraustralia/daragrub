@@ -133,11 +133,12 @@ ui <- shinyUI(
                              shiny::htmlOutput("stagetitle"),
                              
                              column(6,
-                                    uiOutput("stageUI")
-                             ),
-                             column(6,
                                     uiOutput("observeUI")
                              ),
+                             column(6,
+                                    uiOutput("stageUI")
+                             ),
+                             shiny::htmlOutput("pestInfoUI"),
                              
                              
                              # uiOutput("date_ui"), # add UI for the second option
@@ -184,6 +185,7 @@ server <- function(session, input, output){
   values$df <- NULL
   values$count <- 1
   values$risk_stage <- "L1" # default startStage
+  values$start_stage <- "L1"
   values$stage_names <- NA
   values$monitor_stage <- NA
   values$crop_date <- Sys.Date()
@@ -195,12 +197,11 @@ server <- function(session, input, output){
       filter(Pest == input$species) %>%
       pull(Crop) %>%
       unique()
-    
+    # update crop based on species
     updateSelectInput(session,
                       inputId = "crop",
                       choices = crop_list,
                       selected = crop_list[1])
-    
   })
   
   
@@ -218,16 +219,7 @@ server <- function(session, input, output){
                       selected = unique(imsc$Impact_scenario)[1],
     )
   })
-  
-  
-  # output$impactUI <- renderUI({
-  #   imsc <- impact_filter()
-  #   selectInput("impact", label = h4("4. Crop stage of interest:"),
-  #               choices = unique(imsc$Impact_scenario),
-  #               selected = unique(imsc$Impact_scenario)[1],
-  #               width = "100%")
-  # 
-  # })
+
   
   ##****************************************************
   to_listen1 <- reactive({
@@ -267,6 +259,7 @@ server <- function(session, input, output){
       strsplit(", ") %>% 
       pluck(1) %>% # this cause problems if there is more than one row
       identity()
+    values$start_stage <- values$risk_stage[1]
     values$monitor_stage <- values$table %>% 
       filter(Impact_scenario == input$impact) %>%
       pull("Pest_monitoring_life_stage") %>% 
@@ -304,26 +297,28 @@ server <- function(session, input, output){
                 width = "100%")
     }
   })
+  output$pestInfoUI <- renderUI({
+    if(input$selection == select_option[2]){
+      h4("Click here for identification informtaion on the selected pest")
+    }
+  })
   
-  
-  
-  # values$crop_line <- data.frame(date = c(Sys.Date(), Sys.Date() + 5), type = "2") # unnecessary
+  # update the line of the map and the input date
   observeEvent(input$crop_dev, {
     values$crop_line <- data.frame(date = c(input$crop_dev[1], input$crop_dev[2]), type = "2")
     values$crop_date <- input$crop_dev[1]
   })
   
   
-  to_listen3 <- reactive({
-    list(input$stage, input$observe_date)
-  })
-  observeEvent(to_listen3(), {
-    if(input$selection == select_option[2]){
-      values$crop_date <- input$observe_date
-      values$risk_stage <- input$stage
-    }
-  })
-  
+  # to_listen3 <- reactive({
+  #   list(input$stage, input$observe_date, input$update)
+  # })
+  # observeEvent(to_listen3(), {
+  #   if(input$selection == select_option[2]){
+  #     values$crop_date <- input$observe_date
+  #     values$start_stage <- input$stage
+  #   }
+  # })
   
   
   # change map title base on the input
@@ -385,17 +380,23 @@ server <- function(session, input, output){
   
   
   
-  # observe({
+  
+  
   observeEvent(input$update, {
+    
+    # update with the change in selection
+    if(input$selection == select_option[2]){
+      values$crop_date <- input$observe_date
+      values$start_stage <- input$stage
+    }
     
     withProgress(message = "LOADING. PLEASE WAIT...", value = 0, { # create progress bar
       # isolate({
-      # browser()
       longlat <- matrix(c(input_coords$long, input_coords$lat), ncol = 2)
       TMAX <- terra::extract(Tmax, longlat)
       TMIN <- terra::extract(Tmin, longlat)
       # startStage <- ifelse(input$startStage == "", 2, as.numeric(input$startStage))
-      startStage <- which(values$stage_names == values$risk_stage[1])
+      startStage <- which(values$stage_names == values$start_stage)
       # startDay <- as.numeric(format(input$crop_dev[1],"%j")) #**** this is set to start data *****  
       startDay <- as.numeric(format(values$crop_date,"%j")) #**** this is set to start data *****  
       insect <- getBug(input$species)
@@ -439,14 +440,14 @@ server <- function(session, input, output){
     # for(i in 1:length(values$risk_stage)){
     data_rect <- data.frame(x1 = data %>% 
                               filter(name == "Time_start",
-                                     stage == values$risk_stage[1]) %>% 
+                                     stage == dplyr::first(values$risk_stage)) %>% 
                               pull(value), 
                             x2 = data %>% 
                               filter(name == "Time_end",
-                                     stage == values$risk_stage[length(values$risk_stage)]) %>% 
+                                     stage == dplyr::last(values$risk_stage)) %>% 
                               pull(value), 
-                            y1 = values$stage_names[1], 
-                            y2 = values$stage_names[length(values$stage_names)], 
+                            y1 = dplyr::first(values$stage_names), 
+                            y2 = dplyr::last(values$stage_names), 
                             fill = rang[1],
                             action = "Risk stage")
     # data_rect <- rbind(data_rect, data_rect1)
@@ -455,14 +456,14 @@ server <- function(session, input, output){
     # browser()
     data_rect1 <- data.frame(x1 = data %>% 
                                filter(name == "Time_start",
-                                      stage == values$monitor_stage[1]) %>% 
+                                      stage == dplyr::first(values$monitor_stage)) %>% 
                                pull(value), 
                              x2 = data %>% 
                                filter(name == "Time_end",
-                                      stage == values$monitor_stage[length(values$monitor_stage)]) %>% 
+                                      stage == dplyr::last(values$monitor_stage)) %>% 
                                pull(value), 
-                             y1 = values$stage_names[1], 
-                             y2 = values$stage_names[length(values$stage_names)], 
+                             y1 = dplyr::first(values$stage_names), 
+                             y2 = dplyr::last(values$stage_names), 
                              fill = rang2[1],
                              action = "Monitoring stage")
     data_rect <- rbind(data_rect, data_rect1)
@@ -472,29 +473,35 @@ server <- function(session, input, output){
       mutate(y1 = str_to_sentence(y1),
              y2 = str_to_sentence(y2))
     
-    values$data_rect <- data_rect
-    values$data <- data
+    # values$data_rect <- data_rect
+    # values$data <- data
     
-    # }, priority = 0)
+
     
+    # data for the text on the risk scenario
+    # mean(x1, x2)
+    text_dt <- data.frame(x = mean(values$crop_line$date), 
+                          y = dplyr::last(levels(data$stage)),
+                          t = values$table %>%
+                            filter(Impact_scenario == input$impact) %>% 
+                            pull(Impact_scenario))
     
-    
-    
-    # observeEvent(input$update, {
-    
+
     output$phenology <- renderPlotly({
       
       isolate({
-        p <- ggplot(data = values$data) +
+        
+        p <- ggplot(data = data) +
           geom_point(aes(x = value, y = stage, color = stage), size = 5.5) +
           geom_line(aes(x = value, y = stage, color = stage), size = 6) +
           geom_rect(aes(xmin = x1, xmax = x2, 
                         ymin = y1, ymax = y2, 
                         fill = fill, text = paste0(action)), 
-                    data = values$data_rect, 
+                    data = data_rect, 
                     alpha = 0.2) +
           geom_vline(data = values$crop_line, aes(xintercept = as.numeric(date), linetype = type)) +
           scale_linetype_manual(values = unique(values$crop_line$type)) +
+          geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
           ylab(NULL) +
           xlab(NULL) +
           # scale_color_viridis_d(option = "C") +
@@ -503,9 +510,9 @@ server <- function(session, input, output){
           # geom_vline(xintercept = isolate(as.numeric(input$startDate))) +
           # geom_text(aes(x = isolate(input$startDate),
           #               label = "date observed",
-          #               y = values$data$species[1]), 
+          #               y = data$species[1]), 
           #           colour = rgb(0.5, 0.5, 0.5), vjust = 2.2, hjust = .33) +
-          scale_x_date(limits = c(min(values$data$value), max(values$data$value)),
+          scale_x_date(limits = c(min(data$value), max(data$value)),
                        date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
                        date_minor_breaks = "1 week",
                        date_labels = "%d %b") +
@@ -520,22 +527,7 @@ server <- function(session, input, output){
     
     
     
-    # })
-    
-    
-    # observeEvent(input$update, {
-    #   values$table2 <- isolate(values$table)
-    # })
-    # 
-    # table_reactive <- reactive({
-    #   # freezeReactiveValue(values, "table")
-    #   values$table2
-    #   
-    #   
-    # })
-    
-    
-    # observeEvent(input$update, {
+
     # show thw table
     output$outtab <- DT::renderDataTable({
       
