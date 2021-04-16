@@ -78,13 +78,35 @@ mytheme <- theme_bw() +
   )
 
 select_option <- c(
-  "When is the critical time for monitoring?",
-  "I am seeing a pest in my crop and want to check impact scenarios!"
+  "When should I be monitoring?",
+  "I have found a pest in my crop. What is the potential impact?"
 )
+
+pest_urls <- list(
+  Common_Armyworm = "https://cesaraustralia.com/pestfacts/native-armyworms-in-crops-this-spring/",
+  Native_Budworm = "https://cesaraustralia.com/pestfacts/monitor-for-native-budworm-grubs/"
+)
+
+len_tabel <- tibble::tribble(
+  ~stages,    ~Native_Budworm,  ~Common_Armyworm,
+    "egg",              "egg",             "egg",
+     "L1",    "L1 (1 - 3 mm)",   "L1 (2 - 3 mm)",
+     "L2",    "L2 (4 - 7 mm)",   "L2 (3 - 8 mm)",
+     "L3",   "L3 (8 - 13 mm)",  "L3 (7 - 16 mm)",
+     "L4",  "L4 (14 - 23 mm)", "L4 (14 - 22 mm)",
+     "L5",  "L5 (24 - 28 mm)", "L5 (18 - 30 mm)",
+     "L6", "L6 (29 - 40+ mm)", "L6 (25 - 40 mm)",
+   "pupa",             "pupa",            "pupa",
+  "adalt",            "adalt",           "adalt"
+)
+
+
+
+
 
 # ui ----------------------------------------------------------------------
 ui <- shinyUI(
-  navbarPage("PESTIMATE", selected = "Monitoring assist", theme = shinytheme("journal"), # slate
+  navbarPage("PESTIMATOR", selected = "Monitoring assist", theme = shinytheme("journal"), # slate
              
              
              # Lifestage panel ---------------------------------------------------------
@@ -102,8 +124,8 @@ ui <- shinyUI(
                                          selected = bugList[[1]],
                                          width = "100%"
                              ),
+                             shiny::htmlOutput("pestInfoUI"), # link to the pest facts
                              
-
                              selectInput("crop", label = h4("3. Select crop:"),
                                          choices = unique(scenrio_table$Crop),
                                          selected = unique(scenrio_table$Crop)[1],
@@ -113,14 +135,15 @@ ui <- shinyUI(
                              # uiOutput("impactUI"),
                              
                              selectInput(inputId = "impact",
-                                         label = h4("4. Crop stage of interest:"),
-                                         choices = unique(scenrio_table$Impact_scenario),
-                                         selected = unique(scenrio_table$Impact_scenario)[1],
+                                         label = h4("4. What crop stage are you concerned about?"),
+                                         choices = unique(scenrio_table$Crop_risk_period),
+                                         selected = unique(scenrio_table$Crop_risk_period)[1],
                                          width = "100%"
                              ),
                              
                              
-                             dateRangeInput("crop_dev", label = h4("5. Define risk periods:"),
+                             shiny::htmlOutput("datetitle"),
+                             dateRangeInput("crop_dev", label = NULL, #label = h4("5. Define risk periods:"),
                                             min = paste0(curYear,"-1-1"),
                                             max = paste0(curYear,"-12-31"),
                                             format = "dd-MM", startview = "month", weekstart = 0,
@@ -138,7 +161,6 @@ ui <- shinyUI(
                              column(6,
                                     uiOutput("stageUI")
                              ),
-                             shiny::htmlOutput("pestInfoUI"),
                              
                              
                              # uiOutput("date_ui"), # add UI for the second option
@@ -154,18 +176,20 @@ ui <- shinyUI(
                              
                              # HTML("<br/>"),
                              shiny::htmlOutput("runtitle"),
-                             actionButton("update", "Run"),
+                             actionButton("update", "Predict"),
                              HTML("<br/>"),
                              
-                             # output table should come here
-                             # div(style = "position:relative",
-                             plotlyOutput("phenology"),
-                             # uiOutput("hover_info")
-                             # ),
                              
                              HTML("<br/>"),
+                             DT::dataTableOutput("outtab"), 
+                             
+                             # output plot
                              HTML("<br/>"),
-                             DT::dataTableOutput("outtab")
+                             HTML("<br/>"),
+                             # plotlyOutput("phenology"),
+                             plotOutput("phenology"),
+                             
+                             shiny::htmlOutput("plotcaption")
                              
                       )
              )
@@ -215,8 +239,8 @@ server <- function(session, input, output){
     imsc <- impact_filter()
     updateSelectInput(session,
                       inputId = "impact",
-                      choices = unique(imsc$Impact_scenario),
-                      selected = unique(imsc$Impact_scenario)[1],
+                      choices = unique(imsc$Crop_risk_period),
+                      selected = unique(imsc$Crop_risk_period)[1],
     )
   })
 
@@ -254,14 +278,14 @@ server <- function(session, input, output){
     values$stage_names <- names(stageList)
     # get pest risk stage
     values$risk_stage <- values$table %>% 
-      filter(Impact_scenario == input$impact) %>%
+      filter(Crop_risk_period == input$impact) %>%
       pull("Pest_risk_life_stage") %>% 
       strsplit(", ") %>% 
       pluck(1) %>% # this cause problems if there is more than one row
       identity()
     values$start_stage <- values$risk_stage[1]
     values$monitor_stage <- values$table %>% 
-      filter(Impact_scenario == input$impact) %>%
+      filter(Crop_risk_period == input$impact) %>%
       pull("Pest_monitoring_life_stage") %>% 
       strsplit(", ") %>% 
       pluck(1) %>% # this cause problems if there is more than one row
@@ -273,23 +297,24 @@ server <- function(session, input, output){
   
   output$stagetitle <- shiny::renderUI({
     if(input$selection == select_option[2]){
-      h4("6. Observed pest stage:")
+      h4("6. Observed pest details:")
     }
   })
   output$stageUI <- renderUI({
     if(input$selection == select_option[2]){
-      insect<-getBug(input$species)
-      stageList<-lapply(1:length(names(insect$dev.funs)), FUN = function(x) x)
+      insect <- getBug(input$species)
+      stageList <- lapply(1:length(names(insect$dev.funs)), FUN = function(x) x)
       names(stageList) <- names(insect$dev.funs)
-      selectInput("stage", label = "Select observed stage", 
-                  choices = names(stageList), #stageList, 
-                  selected = names(stageList)[2], #stageList[[2]],
+      values$stage_length <- pull(len_tabel, input$species)
+      selectInput("stage", label = "What size was it?", 
+                  choices = values$stage_length, # names(stageList),  
+                  selected = values$stage_length[2], # names(stageList)[2],
                   width = "100%")  
     }
   })
   output$observeUI <- renderUI({
     if(input$selection == select_option[2]){
-      dateInput("observe_date", label = "Select observed date",
+      dateInput("observe_date", label = "When you did see it?",
                 min = paste0(curYear,"-1-1"),
                 max = paste0(curYear,"-12-31"),
                 format = "dd-MM", startview = "month", weekstart = 0,
@@ -297,10 +322,10 @@ server <- function(session, input, output){
                 width = "100%")
     }
   })
+  
   output$pestInfoUI <- renderUI({
-    if(input$selection == select_option[2]){
-      h4("Click here for identification informtaion on the selected pest")
-    }
+    pesturl <- pest_urls[[input$species]]
+    HTML(paste0("<a href='", pesturl, "'>", "Click here for identification infromation on the selected pest!","</a>"))
   })
   
   # update the line of the map and the input date
@@ -310,17 +335,7 @@ server <- function(session, input, output){
   })
   
   
-  # to_listen3 <- reactive({
-  #   list(input$stage, input$observe_date, input$update)
-  # })
-  # observeEvent(to_listen3(), {
-  #   if(input$selection == select_option[2]){
-  #     values$crop_date <- input$observe_date
-  #     values$start_stage <- input$stage
-  #   }
-  # })
-  
-  
+
   # change map title base on the input
   output$maptitle <- shiny::renderUI({
     if(input$selection == select_option[1]){
@@ -333,11 +348,16 @@ server <- function(session, input, output){
   # change the run button title base on the input
   output$runtitle <- shiny::renderUI({
     if(input$selection == select_option[1]){
-      h4("7. Run simulation:")
+      h4("7. Predict pest growth:")
     } else{
-      h4("8. Run simulation:")
+      h4("8. Predict pest growth:")
     }
   })
+  
+  output$datetitle <- shiny::renderUI({
+    h4(sprintf("Estimate the timing of %s for %s:", tolower(input$impact), tolower(input$crop)))
+  })
+  
   
   # set default values for click
   input_coords <- reactiveValues()
@@ -387,7 +407,7 @@ server <- function(session, input, output){
     # update with the change in selection
     if(input$selection == select_option[2]){
       values$crop_date <- input$observe_date
-      values$start_stage <- input$stage
+      values$start_stage <- values$stage_names[which(values$stage_length == input$stage)]
     }
     
     withProgress(message = "LOADING. PLEASE WAIT...", value = 0, { # create progress bar
@@ -432,86 +452,89 @@ server <- function(session, input, output){
     data$stage <- fct_relevel(str_to_sentence(data$stage), str_to_sentence(values$stage_names))
     weekspan <- as.numeric(max(data$value) - min(data$value)) / 7
     
-    # create the rectangle data
-    # data_rect <- data.frame()
-    # browser()
-    rang <- c("red", "yellow", "black")
-    rang2 <- c("green", "blue", "purple")
-    # for(i in 1:length(values$risk_stage)){
-    data_rect <- data.frame(x1 = data %>% 
-                              filter(name == "Time_start",
-                                     stage == dplyr::first(values$risk_stage)) %>% 
-                              pull(value), 
-                            x2 = data %>% 
-                              filter(name == "Time_end",
-                                     stage == dplyr::last(values$risk_stage)) %>% 
-                              pull(value), 
-                            y1 = dplyr::first(values$stage_names), 
-                            y2 = dplyr::last(values$stage_names), 
-                            fill = rang[1],
-                            action = "Risk stage")
+    # # create the rectangle data
+    # rang <- c("red", "yellow", "black")
+    # rang2 <- c("green", "blue", "purple")
+    # data_rect <- data.frame(x1 = data %>% 
+    #                           filter(name == "Time_start",
+    #                                  stage == dplyr::first(values$risk_stage)) %>% 
+    #                           pull(value), 
+    #                         x2 = data %>% 
+    #                           filter(name == "Time_end",
+    #                                  stage == dplyr::last(values$risk_stage)) %>% 
+    #                           pull(value), 
+    #                         y1 = dplyr::first(values$stage_names), 
+    #                         y2 = dplyr::last(values$stage_names), 
+    #                         fill = rang[1],
+    #                         action = "Risk stage")
+    # data_rect1 <- data.frame(x1 = data %>% 
+    #                            filter(name == "Time_start",
+    #                                   stage == dplyr::first(values$monitor_stage)) %>% 
+    #                            pull(value), 
+    #                          x2 = data %>% 
+    #                            filter(name == "Time_end",
+    #                                   stage == dplyr::last(values$monitor_stage)) %>% 
+    #                            pull(value), 
+    #                          y1 = dplyr::first(values$stage_names), 
+    #                          y2 = dplyr::last(values$stage_names), 
+    #                          fill = rang2[1],
+    #                          action = "Monitoring stage")
     # data_rect <- rbind(data_rect, data_rect1)
-    # }
-    # for(i in 1:length(values$monitor_stage)){
-    # browser()
-    data_rect1 <- data.frame(x1 = data %>% 
-                               filter(name == "Time_start",
-                                      stage == dplyr::first(values$monitor_stage)) %>% 
-                               pull(value), 
-                             x2 = data %>% 
-                               filter(name == "Time_end",
-                                      stage == dplyr::last(values$monitor_stage)) %>% 
-                               pull(value), 
-                             y1 = dplyr::first(values$stage_names), 
-                             y2 = dplyr::last(values$stage_names), 
-                             fill = rang2[1],
-                             action = "Monitoring stage")
-    data_rect <- rbind(data_rect, data_rect1)
-    # }
+    # 
+    # data_rect <- data_rect %>% 
+    #   mutate(y1 = str_to_sentence(y1),
+    #          y2 = str_to_sentence(y2))
     
-    data_rect <- data_rect %>% 
-      mutate(y1 = str_to_sentence(y1),
-             y2 = str_to_sentence(y2))
+    data_rect <- data.frame(x1 = values$crop_line$date[1], 
+                            x2 = values$crop_line$date[2], 
+                            y1 = str_to_sentence(dplyr::first(values$stage_names)), 
+                            y2 = str_to_sentence(dplyr::last(values$stage_names)), 
+                            fill = "green",
+                            action = "Crop stage of concern")
+    
+    # change the colour of growth bars
+    barcolour <- rep("gray75", length(values$stage_names))
+    barcolour[which(values$stage_names %in% values$monitor_stage)] <- alpha("blue", 0.3)
+    barcolour[which(values$stage_names %in% values$risk_stage)] <- alpha("red", 0.3)
+    
     
     # values$data_rect <- data_rect
     # values$data <- data
-    
-
     
     # data for the text on the risk scenario
     # mean(x1, x2)
     text_dt <- data.frame(x = mean(values$crop_line$date), 
                           y = dplyr::last(levels(data$stage)),
                           t = values$table %>%
-                            filter(Impact_scenario == input$impact) %>% 
-                            pull(Impact_scenario))
+                            filter(Crop_risk_period == input$impact) %>% 
+                            pull(Crop_risk_period))
     
 
-    output$phenology <- renderPlotly({
+
+    # output$phenology <- renderPlotly({
+    output$phenology <- renderPlot({
       
       isolate({
         
+        # if you want to have a round line with in ggplotly
+        # remove the alpha and add pale colours
+        
         p <- ggplot(data = data) +
-          geom_point(aes(x = value, y = stage, color = stage), size = 5.5) +
-          geom_line(aes(x = value, y = stage, color = stage), size = 6) +
+          # geom_point(aes(x = value, y = stage, color = stage), size = 5.5) +
+          geom_line(aes(x = value, y = stage, color = stage), size = 8, lineend = "round") +
           geom_rect(aes(xmin = x1, xmax = x2, 
                         ymin = y1, ymax = y2, 
                         fill = fill, text = paste0(action)), 
                     data = data_rect, 
-                    alpha = 0.2) +
-          geom_vline(data = values$crop_line, aes(xintercept = as.numeric(date), linetype = type)) +
-          scale_linetype_manual(values = unique(values$crop_line$type)) +
+                    alpha = 0.4) +
+          geom_vline(data = values$crop_line, color = "gray60",
+                     aes(xintercept = as.numeric(date), linetype = type)) +
+          scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
           geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
           ylab(NULL) +
           xlab(NULL) +
-          # scale_color_viridis_d(option = "C") +
-          scale_color_manual(values = gray.colors(length(values$stage_names))) +
-          scale_fill_manual(values = c("blue", "red")) +
-          # geom_vline(xintercept = isolate(as.numeric(input$startDate))) +
-          # geom_text(aes(x = isolate(input$startDate),
-          #               label = "date observed",
-          #               y = data$species[1]), 
-          #           colour = rgb(0.5, 0.5, 0.5), vjust = 2.2, hjust = .33) +
+          scale_color_manual(values = barcolour) +
+          scale_fill_manual(values = c("red")) +
           scale_x_date(limits = c(min(data$value), max(data$value)),
                        date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
                        date_minor_breaks = "1 week",
@@ -520,12 +543,15 @@ server <- function(session, input, output){
         
       })
       
-      ggplotly(p, tooltip = c("text"))
+      plot(p)
+      # ggplotly(p, tooltip = c("text"))
       
     })
     
-    
-    
+    # add plot caption
+    output$plotcaption <- shiny::renderUI({
+      h5("Plot interpretation advice: (this will be filled later)")
+    })
     
 
     # show thw table
@@ -534,20 +560,20 @@ server <- function(session, input, output){
       isolate({
         
         cell_risk <- values$table %>%
-          filter(Impact_scenario == input$impact) %>% 
+          filter(Crop_risk_period == input$impact) %>% 
           pull(Pest_risk_life_stage)
         cell_monit <- values$table %>% # values$table %>%
-          filter(Impact_scenario == input$impact) %>% 
+          filter(Crop_risk_period == input$impact) %>% 
           pull(Pest_monitoring_life_stage)
         
         values$table %>% 
-          filter(Impact_scenario == input$impact) %>% 
+          filter(Crop_risk_period == input$impact) %>% 
           setNames(., gsub("_", " ", names(.))) %>% 
           DT::datatable(escape = FALSE) %>% # show URLs - don't skip the html code
           DT::formatStyle(
             c("Pest risk life stage", "Pest monitoring life stage"),
             backgroundColor = DT::styleEqual(levels = c(cell_risk, cell_monit),
-                                             values = c(alpha("red", 0.2), alpha("blue", 0.2)))
+                                             values = c(alpha("red", 0.3), alpha("blue", 0.3)))
           )
         
       })
