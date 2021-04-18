@@ -136,8 +136,8 @@ ui <- shinyUI(
                              
                              selectInput(inputId = "impact",
                                          label = h4("4. What crop stage are you concerned about?"),
-                                         choices = unique(scenrio_table$Crop_risk_period),
-                                         selected = unique(scenrio_table$Crop_risk_period)[1],
+                                         choices = unique(scenrio_table$Susceptible_crop_stage_of_interest),
+                                         selected = unique(scenrio_table$Susceptible_crop_stage_of_interest)[1],
                                          width = "100%"
                              ),
                              
@@ -239,8 +239,8 @@ server <- function(session, input, output){
     imsc <- impact_filter()
     updateSelectInput(session,
                       inputId = "impact",
-                      choices = unique(imsc$Crop_risk_period),
-                      selected = unique(imsc$Crop_risk_period)[1],
+                      choices = unique(imsc$Susceptible_crop_stage_of_interest),
+                      selected = unique(imsc$Susceptible_crop_stage_of_interest)[1],
     )
   })
 
@@ -260,7 +260,7 @@ server <- function(session, input, output){
       filter(
         Pest == input$species,
         Crop == input$crop#,
-        # Impact_scenario == input$impact
+        # Potentil_impacts == input$impact
       )
   })
   
@@ -278,14 +278,14 @@ server <- function(session, input, output){
     values$stage_names <- names(stageList)
     # get pest risk stage
     values$risk_stage <- values$table %>% 
-      filter(Crop_risk_period == input$impact) %>%
+      filter(Susceptible_crop_stage_of_interest == input$impact) %>%
       pull("Pest_risk_life_stage") %>% 
       strsplit(", ") %>% 
       pluck(1) %>% # this cause problems if there is more than one row
       identity()
     values$start_stage <- values$risk_stage[1]
     values$monitor_stage <- values$table %>% 
-      filter(Crop_risk_period == input$impact) %>%
+      filter(Susceptible_crop_stage_of_interest == input$impact) %>%
       pull("Pest_monitoring_life_stage") %>% 
       strsplit(", ") %>% 
       pluck(1) %>% # this cause problems if there is more than one row
@@ -506,8 +506,8 @@ server <- function(session, input, output){
     text_dt <- data.frame(x = mean(values$crop_line$date), 
                           y = dplyr::last(levels(data$stage)),
                           t = values$table %>%
-                            filter(Crop_risk_period == input$impact) %>% 
-                            pull(Crop_risk_period))
+                            filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
+                            pull(Susceptible_crop_stage_of_interest))
     
 
 
@@ -560,14 +560,14 @@ server <- function(session, input, output){
       isolate({
         
         cell_risk <- values$table %>%
-          filter(Crop_risk_period == input$impact) %>% 
+          filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
           pull(Pest_risk_life_stage)
         cell_monit <- values$table %>% # values$table %>%
-          filter(Crop_risk_period == input$impact) %>% 
+          filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
           pull(Pest_monitoring_life_stage)
         
         values$table %>% 
-          filter(Crop_risk_period == input$impact) %>% 
+          filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
           setNames(., gsub("_", " ", names(.))) %>% 
           DT::datatable(escape = FALSE) %>% # show URLs - don't skip the html code
           DT::formatStyle(
