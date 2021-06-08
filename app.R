@@ -40,7 +40,7 @@ for(bug in bugs){
 
 
 # read scenario data, including pest names, cops, scenarios...
-scenrio_table <- read_csv("data/Impact_scenarios.csv") %>%
+scenrio_table <- read_csv("data/new_pestimate_db.csv") %>%
   mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!","</a>"))
 head(scenrio_table)
 
@@ -83,8 +83,8 @@ select_option <- c(
 )
 
 pest_urls <- list(
-  Common_Armyworm = "https://cesaraustralia.com/pestfacts/native-armyworms-in-crops-this-spring/",
-  Native_Budworm = "https://cesaraustralia.com/pestfacts/monitor-for-native-budworm-grubs/"
+  Common_Armyworm = "https://cesaraustralia.com/pestnotes/caterpillars/armyworm/",
+  Native_Budworm = "https://cesaraustralia.com/pestnotes/caterpillars/native-budworm/"
 )
 
 len_tabel <- tibble::tribble(
@@ -182,6 +182,8 @@ ui <- shinyUI(
                              
                              HTML("<br/>"),
                              DT::dataTableOutput("outtab"), 
+                             
+                             shiny::htmlOutput("tablecaption"),
                              
                              # output plot
                              HTML("<br/>"),
@@ -550,10 +552,20 @@ server <- function(session, input, output){
     
     # add plot caption
     output$plotcaption <- shiny::renderUI({
-      h5("Plot interpretation advice: (this will be filled later)")
+      h5("Plot interpretation advice: if susceptible crop stage of interest overlaps with pest risk life stage (pink bars), you should do monitoring.")
     })
     
 
+    # browser()
+    # add table caption
+    output$tablecaption <- shiny::renderUI({
+      h5(values$table %>% # values$table %>%
+           filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
+           pull(Management_ext_info) %>% 
+           unique()
+        )
+    })
+    
     # show thw table
     output$outtab <- DT::renderDataTable({
       
@@ -561,12 +573,23 @@ server <- function(session, input, output){
         
         cell_risk <- values$table %>%
           filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
-          pull(Pest_risk_life_stage)
+          pull(Pest_risk_life_stage) %>% 
+          unique()
         cell_monit <- values$table %>% # values$table %>%
           filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
-          pull(Pest_monitoring_life_stage)
+          pull(Pest_monitoring_life_stage) %>% 
+          unique()
         
         values$table %>% 
+          dplyr::select(Pest,
+                        Species,
+                        Crop,
+                        Potentil_impacts,
+                        Susceptible_crop_stage_of_interest,
+                        Pest_monitoring_life_stage,
+                        Pest_risk_life_stage,
+                        Management_actions,
+                        Link_to_resources) %>% 
           filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
           setNames(., gsub("_", " ", names(.))) %>% 
           DT::datatable(escape = FALSE) %>% # show URLs - don't skip the html code
