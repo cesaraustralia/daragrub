@@ -559,11 +559,16 @@ server <- function(session, input, output){
     # browser()
     # add table caption
     output$tablecaption <- shiny::renderUI({
+      
+      isolate({
+        
       h5(values$table %>% # values$table %>%
            filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
            pull(Management_ext_info) %>% 
            unique()
         )
+        
+      })
     })
     
     # show thw table
