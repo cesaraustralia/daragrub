@@ -172,6 +172,9 @@ ui <- shinyUI(
                              ),
                              
                              
+                             
+                             # add dynamic title for temp adjustment
+                             shiny::htmlOutput("temptitle"),
                              # change the backgorund colour for the slider
                              tags$style(make_css(list('.irs-bar',
                                                       c('border-top', 'border-bottom', 'background'),
@@ -184,7 +187,7 @@ ui <- shinyUI(
                                                       ''))),
                              sliderTextInput(
                                inputId = "temp",
-                               label = "7. Adjust the temperature (optional)",
+                               label = NULL,
                                choices = seq(from = -3,
                                              to = 3,
                                              by = 0.5),
@@ -332,7 +335,7 @@ server <- function(session, input, output){
   
   output$stagetitle <- shiny::renderUI({
     if(input$selection == select_option[2]){
-      h4("6. Observed pest details:")
+      h4("5. Observed pest details:")
     }
   })
   output$stageUI <- renderUI({
@@ -341,10 +344,6 @@ server <- function(session, input, output){
       stageList <- lapply(1:length(names(insect$dev.funs)), FUN = function(x) x)
       names(stageList) <- names(insect$dev.funs)
       values$stage_length <- pull(len_tabel, input$species)
-      # selectInput("stage", label = "What stage or size?", 
-      #             choices = values$stage_length, # names(stageList),  
-      #             selected = values$stage_length[2], # names(stageList)[2],
-      #             width = "100%")  
       pickerInput(
         inputId = "stage",
         label = "What stage(s) or size(s)?", 
@@ -377,6 +376,14 @@ server <- function(session, input, output){
   })
   
   
+  # change map title base on the input
+  output$temptitle <- shiny::renderUI({
+    if(input$selection == select_option[1]){
+      h4("5. Adjust the temperature (optional):")
+    } else{
+      h4("6. Adjust the temperature (optional):")
+    }
+  })
   
   # change map title base on the input
   output$maptitle <- shiny::renderUI({
