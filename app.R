@@ -220,11 +220,11 @@ ui <- shinyUI(
                              
                              # output plot
                              HTML("<br/>"),
-                             HTML("<br/>"),
                              # plotlyOutput("phenology"),
                              plotOutput("phenology"),
                              
-                             shiny::htmlOutput("plotcaption")
+                             # HTML("<br/>"),
+                             # shiny::htmlOutput("plotcaption")
                              
                       )
              )
@@ -474,8 +474,10 @@ server <- function(session, input, output){
     # do the for loop even if the input$stage is NULL because of input$selection
     if(is.null(input$stage)){
       loops <- 1
+      plot_height <- 400 # default plot height
     } else{
       loops <- input$stage
+      plot_height <- 400 + 150 * ifelse(length(input$stage) > 2, length(input$stage) - 2, 0)
     }
     # loops <- ifelse(is.null(input$stage), 1, input$stage)
     
@@ -598,8 +600,8 @@ server <- function(session, input, output){
                      aes(xintercept = as.numeric(date))) +
           # scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
           geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
-          ylab(NULL) +
-          xlab(NULL) +
+          # ylab(NULL) +
+          # xlab(NULL) +
           scale_color_manual(values = barcolour) +
           scale_fill_manual(values = c("red")) +
           scale_x_date(limits = c(min(data$Time_start),
@@ -610,6 +612,10 @@ server <- function(session, input, output){
           geom_hline(yintercept = seq_along(unique(data$stage)[-1]) + .5, 
                      linetype = "dashed", 
                      size = .1) +
+          labs(x = NULL, 
+               y = NULL,
+               caption = "\nPlot interpretation advice: \n Consider management action if high risk scenario identified otherwise continue monitoring."
+          ) +
           mytheme
         
         # original plot
@@ -640,12 +646,12 @@ server <- function(session, input, output){
       plot(p)
       # ggplotly(p, tooltip = c("text"))
       
-    })
+    }, height = plot_height)
     
-    # add plot caption
-    output$plotcaption <- shiny::renderUI({
-      h5("Plot interpretation advice: if susceptible crop stage of interest overlaps with pest risk life stage (pink bars), you should do monitoring.")
-    })
+    # # add plot caption
+    # output$plotcaption <- shiny::renderUI({
+    #   h5("Plot interpretation advice: if susceptible crop stage of interest overlaps with pest risk life stage (pink bars), you should do monitoring.")
+    # })
     
     
     # add table caption
