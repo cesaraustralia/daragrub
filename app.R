@@ -436,8 +436,8 @@ server <- function(session, input, output){
   })
   
   output$datetitle <- shiny::renderUI({
-    # h4(sprintf("Estimate the timing of %s for %s:", tolower(input$impact), tolower(input$crop)))
-    h5(sprintf("What is the approximate date for this growth stage of %s:", tolower(input$crop)))
+    # h5(sprintf("What is the approximate date for this growth stage of %s:", tolower(input$crop)))
+    h5("Adjust the default crop stage for your region if needed:")
   })
   
   
