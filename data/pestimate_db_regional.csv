@@ -1,0 +1,97 @@
+Crop,Susceptible_crop_stage_of_interest,Region,Start_date,End_date
+Barley,Younger crop stages: sowing to tillering,VIC,09-01,10-05
+Barley,Younger crop stages: sowing to tillering,NSW,09-02,10-06
+Barley,Younger crop stages: sowing to tillering,QLD,09-03,10-07
+Barley,Younger crop stages: sowing to tillering,SA,09-04,10-08
+Barley,Younger crop stages: sowing to tillering,WA,09-05,10-09
+Barley,Younger crop stages: sowing to tillering,NT,09-06,10-10
+Barley,Heading through to grain fill,VIC,09-01,10-08
+Barley,Heading through to grain fill,NSW,09-02,10-09
+Barley,Heading through to grain fill,QLD,09-03,10-10
+Barley,Heading through to grain fill,SA,09-04,10-11
+Barley,Heading through to grain fill,WA,09-05,10-12
+Barley,Heading through to grain fill,NT,09-06,10-13
+Oat,Younger crop stages: sowing to tillering,VIC,09-01,10-10
+Oat,Younger crop stages: sowing to tillering,NSW,09-02,10-11
+Oat,Younger crop stages: sowing to tillering,QLD,09-03,10-12
+Oat,Younger crop stages: sowing to tillering,SA,09-04,10-13
+Oat,Younger crop stages: sowing to tillering,WA,09-05,10-14
+Oat,Younger crop stages: sowing to tillering,NT,09-06,10-15
+Oat,Heading through to grain fill,VIC,09-01,09-24
+Oat,Heading through to grain fill,NSW,09-02,09-25
+Oat,Heading through to grain fill,QLD,09-03,09-26
+Oat,Heading through to grain fill,SA,09-04,09-27
+Oat,Heading through to grain fill,WA,09-05,09-28
+Oat,Heading through to grain fill,NT,09-06,09-29
+Wheat,Younger crop stages: sowing to tillering,VIC,09-01,10-06
+Wheat,Younger crop stages: sowing to tillering,NSW,09-02,10-07
+Wheat,Younger crop stages: sowing to tillering,QLD,09-03,10-08
+Wheat,Younger crop stages: sowing to tillering,SA,09-04,10-09
+Wheat,Younger crop stages: sowing to tillering,WA,09-05,10-10
+Wheat,Younger crop stages: sowing to tillering,NT,09-06,10-11
+Wheat,Heading through to grain fill,VIC,09-01,10-16
+Wheat,Heading through to grain fill,NSW,09-02,10-17
+Wheat,Heading through to grain fill,QLD,09-03,10-18
+Wheat,Heading through to grain fill,SA,09-04,10-19
+Wheat,Heading through to grain fill,WA,09-05,10-20
+Wheat,Heading through to grain fill,NT,09-06,10-21
+Field/Faba Bean,Budding through to flowering,VIC,09-01,10-07
+Field/Faba Bean,Budding through to flowering,NSW,09-02,10-08
+Field/Faba Bean,Budding through to flowering,QLD,09-03,10-09
+Field/Faba Bean,Budding through to flowering,SA,09-04,10-10
+Field/Faba Bean,Budding through to flowering,WA,09-05,10-11
+Field/Faba Bean,Budding through to flowering,NT,09-06,10-12
+Field Pea,Budding through to flowering,VIC,09-01,10-16
+Field Pea,Budding through to flowering,NSW,09-02,10-17
+Field Pea,Budding through to flowering,QLD,09-03,10-18
+Field Pea,Budding through to flowering,SA,09-04,10-19
+Field Pea,Budding through to flowering,WA,09-05,10-20
+Field Pea,Budding through to flowering,NT,09-06,10-21
+Lentil,Budding through to flowering,VIC,09-01,10-09
+Lentil,Budding through to flowering,NSW,09-02,10-10
+Lentil,Budding through to flowering,QLD,09-03,10-11
+Lentil,Budding through to flowering,SA,09-04,10-12
+Lentil,Budding through to flowering,WA,09-05,10-13
+Lentil,Budding through to flowering,NT,09-06,10-14
+Chickpea,Budding through to flowering,VIC,09-01,10-02
+Chickpea,Budding through to flowering,NSW,09-02,10-03
+Chickpea,Budding through to flowering,QLD,09-03,10-04
+Chickpea,Budding through to flowering,SA,09-04,10-05
+Chickpea,Budding through to flowering,WA,09-05,10-06
+Chickpea,Budding through to flowering,NT,09-06,10-07
+Field/Faba Bean,Sowing to vegetative,VIC,09-01,10-08
+Field/Faba Bean,Sowing to vegetative,NSW,09-02,10-09
+Field/Faba Bean,Sowing to vegetative,QLD,09-03,10-10
+Field/Faba Bean,Sowing to vegetative,SA,09-04,10-11
+Field/Faba Bean,Sowing to vegetative,WA,09-05,10-12
+Field/Faba Bean,Sowing to vegetative,NT,09-06,10-13
+Field Pea,Sowing to vegetative,VIC,09-01,09-28
+Field Pea,Sowing to vegetative,NSW,09-02,09-29
+Field Pea,Sowing to vegetative,QLD,09-03,09-30
+Field Pea,Sowing to vegetative,SA,09-04,10-01
+Field Pea,Sowing to vegetative,WA,09-05,10-02
+Field Pea,Sowing to vegetative,NT,09-06,10-03
+Lentil,Sowing to vegetative,VIC,09-01,10-08
+Lentil,Sowing to vegetative,NSW,09-02,10-09
+Lentil,Sowing to vegetative,QLD,09-03,10-10
+Lentil,Sowing to vegetative,SA,09-04,10-11
+Lentil,Sowing to vegetative,WA,09-05,10-12
+Lentil,Sowing to vegetative,NT,09-06,10-13
+Chickpea,Sowing to vegetative,VIC,09-01,10-04
+Chickpea,Sowing to vegetative,NSW,09-02,10-05
+Chickpea,Sowing to vegetative,QLD,09-03,10-06
+Chickpea,Sowing to vegetative,SA,09-04,10-07
+Chickpea,Sowing to vegetative,WA,09-05,10-08
+Chickpea,Sowing to vegetative,NT,09-06,10-09
+Lupin,Pod development through to maturity,VIC,09-01,10-09
+Lupin,Pod development through to maturity,NSW,09-02,10-10
+Lupin,Pod development through to maturity,QLD,09-03,10-11
+Lupin,Pod development through to maturity,SA,09-04,10-12
+Lupin,Pod development through to maturity,WA,09-05,10-13
+Lupin,Pod development through to maturity,NT,09-06,10-14
+Canola,Pod development through to maturity,VIC,09-01,09-20
+Canola,Pod development through to maturity,NSW,09-02,09-21
+Canola,Pod development through to maturity,QLD,09-03,09-22
+Canola,Pod development through to maturity,SA,09-04,09-23
+Canola,Pod development through to maturity,WA,09-05,09-24
+Canola,Pod development through to maturity,NT,09-06,09-25

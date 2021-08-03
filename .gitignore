@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 data_prep.R
+.~lock*

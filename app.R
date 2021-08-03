@@ -48,6 +48,8 @@ scenrio_table <- read_csv("data/new_pestimate_db.csv") %>%
   mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!","</a>"))
 head(scenrio_table)
 
+# read regional data
+regional <- read_csv("data/pestimate_db_regional.csv")
 
 # points in Australia
 data("wrld_simpl", package = "maptools")
@@ -152,6 +154,7 @@ ui <- shinyUI(
                              
                              
                              shiny::htmlOutput("datetitle"),
+                             # uiOutput("crop_dev_data"),
                              dateRangeInput("crop_dev", label = NULL, #label = h4("5. Define risk periods:"),
                                             min = paste0(curYear,"-1-1"),
                                             max = paste0(curYear,"-12-31"),
@@ -251,7 +254,7 @@ server <- function(session, input, output){
   values$stage_names <- NA
   values$monitor_stage <- NA
   values$crop_date <- Sys.Date()
-  
+
   
   # update impact scenario and crop options
   observeEvent(input$species, {
@@ -332,7 +335,7 @@ server <- function(session, input, output){
   
   
   
-  
+  # title for the stage
   output$stagetitle <- shiny::renderUI({
     if(input$selection == select_option[2]){
       h4("5. Observed pest details:")
@@ -376,6 +379,35 @@ server <- function(session, input, output){
   })
   
   
+  ##*****************************************************
+  # update the date range based on selected region
+  to_listen3 <- reactive({
+    list(input_coords$region, input$crop, input$impact)
+  })
+  observeEvent(to_listen3(), {
+    date_filer <- regional %>% 
+      filter(Crop == input$crop,
+             Region == input_coords$region,  
+             Susceptible_crop_stage_of_interest == input$impact)
+    updateDateRangeInput(session = session, 
+                         inputId = "crop_dev",
+                         start = paste(curYear, date_filer$Start_date, sep = "-"),
+                         end = paste(curYear, date_filer$End_date, sep = "-"))
+    
+  })
+  # # add regional dates from the table
+  # output$crop_dev_date <- shiny::renderUI({
+  #   dateRangeInput("crop_dev", label = NULL, #label = h4("5. Define risk periods:"),
+  #                  min = paste0(curYear,"-1-1"),
+  #                  max = paste0(curYear,"-12-31"),
+  #                  format = "dd-MM", startview = "month", weekstart = 0,
+  #                  language = "en", width = "85%"
+  #   )
+  # })
+  ##*****************************************************
+  
+  
+  
   # change map title base on the input
   output$temptitle <- shiny::renderUI({
     if(input$selection == select_option[1]){
@@ -414,6 +446,7 @@ server <- function(session, input, output){
   input_coords <- reactiveValues()
   input_coords$long <- 145.0
   input_coords$lat <- -37.7
+  input_coords$region <- "VIC"
   # update the click
   observe({
     if(!is.null(input$smap_click)){
@@ -423,7 +456,7 @@ server <- function(session, input, output){
       }
     }
     # update selected region value with each click
-    input_coords$reg <- sf::st_point(x = c(input_coords$long, input_coords$lat)) %>% 
+    input_coords$region <- sf::st_point(x = c(input_coords$long, input_coords$lat)) %>% 
       sf::st_sfc() %>% 
       sf::st_intersection(res_hubs, .) %>% 
       sf::st_drop_geometry() %>% 
@@ -460,7 +493,7 @@ server <- function(session, input, output){
     if(!is.null(input$smap_click) && !xy_in_aus(input$smap_click$lng, input$smap_click$lat)) {
       NULL
     } else{
-      sprintf("Selected location is in %s region", input_coords$reg[1])
+      sprintf("Selected location is in %s region", input_coords$region[1])
     }
   })
   
