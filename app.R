@@ -82,7 +82,8 @@ mytheme <- theme_bw() +
         plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
         legend.background = element_blank(),
         axis.line.x = element_line(color = "black"),
-        legend.position = "none"
+        legend.position = "none",
+        plot.caption = element_markdown(size = 14)
   )
 
 select_option <- c(
@@ -608,7 +609,7 @@ server <- function(session, input, output){
         # if you want to have a round line with in ggplotly
         # remove the alpha and add pale colours
         # browser()
-        
+        library(ggtext)
         p <- ggplot(data = data) +
           geom_linerange(aes(y = stage,
                              xmin = Time_start,
@@ -652,7 +653,10 @@ server <- function(session, input, output){
                      size = .1) +
           labs(x = NULL, 
                y = NULL,
-               caption = "\nPlot interpretation advice: \n Consider management action if high risk scenario identified otherwise continue monitoring."
+               caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
+               <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
+               <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+               "
           ) +
           mytheme
         
@@ -666,6 +670,7 @@ server <- function(session, input, output){
             geom_text(x = input$observe_date - 2, 
                       y = "L4",
                       angle = 90,
+                      size = 4.5,
                       label = "Observed date",
                       color = "black")
         }
@@ -685,11 +690,28 @@ server <- function(session, input, output){
       
       isolate({
         
-        h5(values$table %>% # values$table %>%
-             filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
-             pull(Management_ext_info) %>% 
-             unique()
-        )
+        HTML("<h4>Potential impacts:</h4>",
+             sprintf("<h5>%s</h5>", 
+                     values$table %>% # values$table %>%
+                       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
+                       pull(Potentil_impacts) %>%
+                       unique()),
+             # "<br/>",
+             sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
+                       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
+                       pull(Management_ext_info) %>%
+                       unique()),
+             "<h4>Management action:</h4>",
+             sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
+                       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
+                       pull(Management_actions) %>%
+                       unique()),
+             "<br/>")
+        # h5(values$table %>% # values$table %>%
+        #      filter(Susceptible_crop_stage_of_interest == input$impact) %>%
+        #      pull(Management_ext_info) %>%
+        #      unique()
+        # )
         
       })
     })
