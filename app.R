@@ -8,7 +8,6 @@ library(tableHTML)
 library(maptools)
 library(rgeos)
 library(terra)
-# library(raster)
 library(leaflet)
 library(sf)
 library(plotly)
@@ -112,12 +111,22 @@ len_tabel <- tibble::tribble(
 
 
 
+# make_css(list('.irs-bar',
+#               c('border-top', 'border-bottom', 'background'),
+#               rep('#FF000000', 3)),
+#          list('.irs-bar-edge',
+#               c('background', 'border'),
+#               c('#FF000000', '0px !important')),
+#          list('.irs-single',
+#               'background',
+#               ''),
+#          file = "slider_css.css")
+
 
 
 # ui ----------------------------------------------------------------------
 ui <- shinyUI(
   navbarPage("PESTIMATOR", selected = "Monitoring assist", theme = shinytheme("journal"), # slate
-             
              
              # Lifestage panel ---------------------------------------------------------
              tabPanel("Monitoring assist",
@@ -154,7 +163,6 @@ ui <- shinyUI(
                              
                              
                              shiny::htmlOutput("datetitle"),
-                             # uiOutput("crop_dev_data"),
                              dateRangeInput("crop_dev", label = NULL, #label = h4("5. Define risk periods:"),
                                             min = paste0(curYear,"-1-1"),
                                             max = paste0(curYear,"-12-31"),
@@ -178,7 +186,7 @@ ui <- shinyUI(
                              
                              # add dynamic title for temp adjustment
                              shiny::htmlOutput("temptitle"),
-                             # change the backgorund colour for the slider
+                             # change the background colour for the slider
                              tags$style(make_css(list('.irs-bar',
                                                       c('border-top', 'border-bottom', 'background'),
                                                       rep('#FF000000', 3)),
@@ -188,6 +196,7 @@ ui <- shinyUI(
                                                  list('.irs-single',
                                                       'background',
                                                       ''))),
+                             # tags$style("./slider_css.css"),
                              sliderTextInput(
                                inputId = "temp",
                                label = NULL,
@@ -199,8 +208,6 @@ ui <- shinyUI(
                              ),
 
                              
-                             
-                             # uiOutput("date_ui"), # add UI for the second option
                              # HTML("<br/>"),
                              shiny::htmlOutput("maptitle"),
                              # show selected region
@@ -227,16 +234,12 @@ ui <- shinyUI(
                              # output plot
                              HTML("<br/>"),
                              # plotlyOutput("phenology"),
-                             plotOutput("phenology"),
-                             
-                             # HTML("<br/>"),
-                             # shiny::htmlOutput("plotcaption")
-                             
+                             plotOutput("phenology")
+                            
                       )
+             
              )
              # new tab -----------------------------------------------------------------
-             
-             
              
              
   )
@@ -395,15 +398,6 @@ server <- function(session, input, output){
                          end = paste(curYear, date_filer$End_date, sep = "-"))
     
   })
-  # # add regional dates from the table
-  # output$crop_dev_date <- shiny::renderUI({
-  #   dateRangeInput("crop_dev", label = NULL, #label = h4("5. Define risk periods:"),
-  #                  min = paste0(curYear,"-1-1"),
-  #                  max = paste0(curYear,"-12-31"),
-  #                  format = "dd-MM", startview = "month", weekstart = 0,
-  #                  language = "en", width = "85%"
-  #   )
-  # })
   ##*****************************************************
   
   
@@ -584,9 +578,11 @@ server <- function(session, input, output){
     # create the rectangle data
     data_rect <- data.frame(x1 = values$crop_line$date[1], 
                             x2 = values$crop_line$date[2], 
-                            y1 = str_to_sentence(dplyr::first(values$stage_names)), 
-                            y2 = str_to_sentence(dplyr::last(values$stage_names)), 
-                            fill = "green",
+                            # y1 = str_to_sentence(dplyr::first(values$stage_names)), 
+                            # y2 = str_to_sentence(dplyr::last(values$stage_names)),
+                            y1 = 0, # to stretch the rectangle
+                            y2 = length(unique(values$stage_names)) + 0.5,
+                            # fill = "green",
                             action = "Crop stage of concern")
     
     # change the colour of growth bars
@@ -595,11 +591,8 @@ server <- function(session, input, output){
     barcolour[which(values$stage_names %in% values$risk_stage)] <- "red" # alpha("red", 0.3)
     
     
-    # values$data_rect <- data_rect
-    # values$data <- data
-    
+
     # data for the text on the risk scenario
-    # mean(x1, x2)
     text_dt <- data.frame(x = mean(values$crop_line$date), 
                           y = dplyr::last(levels(data$stage)),
                           t = values$table %>%
@@ -630,22 +623,27 @@ server <- function(session, input, output){
           geom_point(aes(x = Time_end, y = stage, colour = stage),
                      size = 4,
                      position = position_dodge2(width = 0.7)) +
-          geom_rect(aes(xmin = x1, xmax = x2, 
-                        ymin = y1, ymax = y2, 
-                        # text = paste0(action),
-                        fill = fill), 
-                    data = data_rect, 
-                    alpha = 0.4) +
+          # geom_rect(aes(xmin = x1, xmax = x2, 
+          #               ymin = y1, ymax = y2, 
+          #               # text = paste0(action),
+          #               fill = fill), 
+          #           data = data_rect, 
+          #           alpha = 0.3) +
+          annotate(geom = "rect", 
+                   xmin = as.Date(data_rect$x1),
+                   xmax = as.Date(data_rect$x2),
+                   ymin = data_rect$y1, 
+                   ymax = data_rect$y2,
+                   fill = "red", 
+                   alpha = 0.3) +
           geom_vline(data = values$crop_line, color = "gray60",
                      aes(xintercept = as.numeric(date))) +
           # scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
           geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
-          # ylab(NULL) +
-          # xlab(NULL) +
           scale_color_manual(values = barcolour) +
           scale_fill_manual(values = c("red")) +
-          scale_x_date(limits = c(min(data$Time_start),
-                                  max(data$Time_end)),
+          scale_x_date(limits = c(min(data$Time_start, as.Date(data_rect$x1)),
+                                  max(data$Time_end, as.Date(data_rect$x2))),
                        date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
                        date_minor_breaks = "1 week",
                        date_labels = "%d %b") +
@@ -658,28 +656,21 @@ server <- function(session, input, output){
           ) +
           mytheme
         
-        # original plot
-        # p <- ggplot(data = data) +
-        #   # geom_point(aes(x = value, y = stage, color = stage), size = 5.5) +
-        #   geom_line(aes(x = value, y = stage, color = stage), size = 8, lineend = "round") +
-        #   geom_rect(aes(xmin = x1, xmax = x2, 
-        #                 ymin = y1, ymax = y2, 
-        #                 fill = fill, text = paste0(action)), 
-        #             data = data_rect, 
-        #             alpha = 0.4) +
-        #   geom_vline(data = values$crop_line, color = "gray60",
-        #              aes(xintercept = as.numeric(date), linetype = type)) +
-        #   scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
-        #   geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
-        #   ylab(NULL) +
-        #   xlab(NULL) +
-        #   scale_color_manual(values = barcolour) +
-        #   scale_fill_manual(values = c("red")) +
-        #   scale_x_date(limits = c(min(data$value), max(data$value)),
-        #                date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
-        #                date_minor_breaks = "1 week",
-        #                date_labels = "%d %b") +
-        #   mytheme
+        # add observation line
+        if(input$selection == select_option[2]){
+          p <- p + geom_vline(xintercept = input$observe_date, 
+                              size = 1.5,
+                              alpha = 0.4,
+                              linetype = 6,
+                              color = "black") +
+            geom_text(x = input$observe_date - 2, 
+                      y = "L4",
+                      angle = 90,
+                      label = "Observed date",
+                      color = "black")
+        }
+
+
         
       })
       
@@ -687,12 +678,7 @@ server <- function(session, input, output){
       # ggplotly(p, tooltip = c("text"))
       
     }, height = plot_height)
-    
-    # # add plot caption
-    # output$plotcaption <- shiny::renderUI({
-    #   h5("Plot interpretation advice: if susceptible crop stage of interest overlaps with pest risk life stage (pink bars), you should do monitoring.")
-    # })
-    
+
     
     # add table caption
     output$tablecaption <- shiny::renderUI({
