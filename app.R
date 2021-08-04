@@ -4,6 +4,7 @@ library(shinythemes)
 
 library(shinyWidgets)
 library(tableHTML)
+library(ggtext)
 
 library(maptools)
 library(rgeos)
@@ -609,7 +610,7 @@ server <- function(session, input, output){
         # if you want to have a round line with in ggplotly
         # remove the alpha and add pale colours
         # browser()
-        library(ggtext)
+        
         p <- ggplot(data = data) +
           geom_linerange(aes(y = stage,
                              xmin = Time_start,
