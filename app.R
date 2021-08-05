@@ -223,15 +223,6 @@ ui <- shinyUI(
                       column(8,
                              
                              # HTML("<br/>"),
-                             
-                             
-                             switchInput(
-                               inputId = "toggle",
-                               label = "New plot?",
-                               value = TRUE
-                             ),
-                             
-                             
                              shiny::htmlOutput("runtitle"),
                              actionButton("update", "Predict"),
                              HTML("<br/>"),
@@ -518,16 +509,16 @@ server <- function(session, input, output){
     values$df <- NULL
     # do the for loop even if the input$stage is NULL because of input$selection
    
-    if(is.null(input$stage)){
+    if(input$selection == select_option[1]){
       loops <- 1
-      plot_height <- 400 # default plot height
+      # plot_height <- 400 # default plot height
     } else{
       loops <- input$stage
-      if(!input$toggle){
-        plot_height <- 400 + 150 * ifelse(length(input$stage) > 2, length(input$stage) - 2, 0)
-      } else{
-        plot_height <- 400
-      }  
+      # if(!input$toggle){
+      #   plot_height <- 400 + 150 * ifelse(length(input$stage) > 2, length(input$stage) - 2, 0)
+      # } else{
+      #   plot_height <- 400
+      # }  
     }
 
     
@@ -535,7 +526,6 @@ server <- function(session, input, output){
       # browser()
       # update with the change in selection
       if(input$selection == select_option[2]){
-        # browser()
         values$crop_date <- input$observe_date
         values$start_stage <- values$stage_names[which(values$stage_length == input$stage[i])]
       }
@@ -574,21 +564,14 @@ server <- function(session, input, output){
     }
     
     
-    # data <- values$df
-    
-    
-    
-    
     # get back to the wider form - fix this to have wide form from beginning
-    if(!input$toggle){
-      data <- values$df %>% 
-        pivot_wider(names_from = name, values_from = value) %>% 
-        as.data.frame()
-    } else{
-      data <- values$df
-    }
-    
-    
+    # if(!input$toggle){
+    #   data <- values$df %>% 
+    #     pivot_wider(names_from = name, values_from = value) %>% 
+    #     as.data.frame()
+    # } else{
+    data <- values$df
+    # }
     
     
     # browser()
@@ -602,37 +585,34 @@ server <- function(session, input, output){
     weekspan <- as.numeric(max(data$value) - min(data$value)) / 7
     
     # create the rectangle data
-    if(!input$toggle){
+    # if(!input$toggle){
+    # data_rect <- data.frame(x1 = values$crop_line$date[1], 
+    #                         x2 = values$crop_line$date[2], 
+    #                         # y1 = str_to_sentence(dplyr::first(values$stage_names)), 
+    #                         # y2 = str_to_sentence(dplyr::last(values$stage_names)),
+    #                         y1 = 0, # to stretch the rectangle
+    #                         y2 = length(unique(values$stage_names)) + 0.5,
+    #                         # fill = "green",
+    #                         action = "Crop stage of concern")
+    # } else{
     data_rect <- data.frame(x1 = values$crop_line$date[1], 
                             x2 = values$crop_line$date[2], 
-                            # y1 = str_to_sentence(dplyr::first(values$stage_names)), 
-                            # y2 = str_to_sentence(dplyr::last(values$stage_names)),
                             y1 = 0, # to stretch the rectangle
-                            y2 = length(unique(values$stage_names)) + 0.5,
-                            # fill = "green",
-                            action = "Crop stage of concern")
-    } else{
-      data_rect <- data.frame(x1 = values$crop_line$date[1], 
-                              x2 = values$crop_line$date[2], 
-                              y1 = 0, # to stretch the rectangle
-                              y2 = length(unique(data$type)) + 0.5
-      )
-    }
+                            y2 = length(unique(data$type)) + 0.5)
+    # }
     
     # change the colour of growth bars
     barcolour <- rep("gray75", length(values$stage_names))
-    barcolour[which(values$stage_names %in% values$monitor_stage)] <- "blue"# alpha("blue", 0.3)
-    barcolour[which(values$stage_names %in% values$risk_stage)] <- "red" # alpha("red", 0.3)
+    barcolour[which(values$stage_names %in% values$monitor_stage)] <- alpha("blue", 0.4)
+    barcolour[which(values$stage_names %in% values$risk_stage)] <- alpha("red", 0.4)
     
     
 
     # data for the text on the risk scenario
     text_dt <- data.frame(x = mean(values$crop_line$date), 
-                          
-                          
-                          y = ifelse(input$toggle, last(data$type), dplyr::last(levels(data$stage))),
+                          y = last(data$type),
+                          # y = ifelse(input$toggle, last(data$type), dplyr::last(levels(data$stage))),
                           # y = dplyr::last(levels(data$stage)),
-                          
                           t = values$table %>%
                             filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
                             pull(Susceptible_crop_stage_of_interest))
@@ -647,53 +627,53 @@ server <- function(session, input, output){
         # remove the alpha and add pale colours
         # browser()
         
-        if(!input$toggle){
-          
-        p <- ggplot(data = data) +
-          geom_linerange(aes(y = stage,
-                             xmin = Time_start,
-                             xmax = Time_end,
-                             colour = stage),
-                         size = 5,
-                         # lineend = "round",
-                         position = position_dodge2(width = 0.7)) +
-          geom_point(aes(x = Time_start, y = stage, colour = stage),
-                     size = 4,
-                     position = position_dodge2(width = 0.7)) +
-          geom_point(aes(x = Time_end, y = stage, colour = stage),
-                     size = 4,
-                     position = position_dodge2(width = 0.7)) +
-          annotate(geom = "rect", 
-                   xmin = as.Date(data_rect$x1),
-                   xmax = as.Date(data_rect$x2),
-                   ymin = data_rect$y1, 
-                   ymax = data_rect$y2,
-                   fill = "red", 
-                   alpha = 0.3) +
-          geom_vline(data = values$crop_line, color = "gray60",
-                     aes(xintercept = as.numeric(date))) +
-          # scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
-          geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
-          scale_color_manual(values = barcolour) +
-          scale_fill_manual(values = c("red")) +
-          scale_x_date(limits = c(min(data$Time_start, as.Date(data_rect$x1)),
-                                  max(data$Time_end, as.Date(data_rect$x2))),
-                       date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
-                       date_minor_breaks = "1 week",
-                       date_labels = "%d %b") +
-          geom_hline(yintercept = seq_along(unique(data$stage)[-1]) + .5, 
-                     linetype = "dashed", 
-                     size = .1) +
-          labs(x = NULL, 
-               y = NULL,
-               caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
-               <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
-               <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
-               "
-          ) +
-          mytheme
-        
-        } else{
+        # if(!input$toggle){
+        #   
+        # p <- ggplot(data = data) +
+        #   geom_linerange(aes(y = stage,
+        #                      xmin = Time_start,
+        #                      xmax = Time_end,
+        #                      colour = stage),
+        #                  size = 5,
+        #                  # lineend = "round",
+        #                  position = position_dodge2(width = 0.7)) +
+        #   geom_point(aes(x = Time_start, y = stage, colour = stage),
+        #              size = 4,
+        #              position = position_dodge2(width = 0.7)) +
+        #   geom_point(aes(x = Time_end, y = stage, colour = stage),
+        #              size = 4,
+        #              position = position_dodge2(width = 0.7)) +
+        #   annotate(geom = "rect", 
+        #            xmin = as.Date(data_rect$x1),
+        #            xmax = as.Date(data_rect$x2),
+        #            ymin = data_rect$y1, 
+        #            ymax = data_rect$y2,
+        #            fill = "red", 
+        #            alpha = 0.3) +
+        #   geom_vline(data = values$crop_line, color = "gray60",
+        #              aes(xintercept = as.numeric(date))) +
+        #   # scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
+        #   geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
+        #   scale_color_manual(values = barcolour) +
+        #   scale_fill_manual(values = c("red")) +
+        #   scale_x_date(limits = c(min(data$Time_start, as.Date(data_rect$x1)),
+        #                           max(data$Time_end, as.Date(data_rect$x2))),
+        #                date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
+        #                date_minor_breaks = "1 week",
+        #                date_labels = "%d %b") +
+        #   geom_hline(yintercept = seq_along(unique(data$stage)[-1]) + .5, 
+        #              linetype = "dashed", 
+        #              size = .1) +
+        #   labs(x = NULL, 
+        #        y = NULL,
+        #        caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
+        #        <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
+        #        <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+        #        "
+        #   ) +
+        #   mytheme
+        # 
+        # } else{
           
           pt <- data %>%
             group_by(type) %>%
@@ -718,7 +698,7 @@ server <- function(session, input, output){
                      ymin = data_rect$y1, 
                      ymax = data_rect$y2,
                      fill = "red", 
-                     alpha = 0.3) +
+                     alpha = 0.4) +
             geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3, inherit.aes = FALSE) +
             scale_color_manual(values = barcolour) +
             scale_fill_manual(values = c("red")) +
@@ -732,14 +712,20 @@ server <- function(session, input, output){
                        size = .1) +
             labs(x = NULL, 
                  y = "Observed stages",
-                 caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
-               <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
-               <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
-               "
+            #      caption = "<br/><b style='color:#0000FF66'>Blue:</b> <b>pest monitoring life stage(s)</b>
+            #    <b style='color:#FF000066'>Red:</b> <b>pest risk life stage(s)</b> <br/>
+            #    <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+            #    "
+            caption = "<br/>
+            <b style='color:#0000FF66'>Pest monitoring life stage(s) </b>
+            <b style='color:#FF000066'>Pest risk life stage(s)</b> 
+            <br/>
+            <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+            "
             ) +
             mytheme
           
-        }
+        # }
         
         
         
@@ -751,11 +737,17 @@ server <- function(session, input, output){
                               linetype = 6,
                               color = "black") +
             geom_text(x = input$observe_date - 2, 
-                      y = ifelse(input$toggle, length(unique(data$type)) + 0.5, "L4"),
+                      # y = ifelse(input$toggle, length(unique(data$type)) + 0.5, "L4"),
+                      y = length(unique(data$type)) + 0.5,
                       angle = 0,
                       size = 4.5,
                       label = "Observed date",
                       color = "black")
+        } else{
+          p <- p +
+            theme(axis.title.y = element_blank(),
+                  axis.text.y = element_blank(),
+                  axis.ticks.y = element_blank())
         }
 
 
@@ -765,7 +757,8 @@ server <- function(session, input, output){
       plot(p)
       # ggplotly(p, tooltip = c("text"))
       
-    }, height = plot_height)
+    })
+    # }, height = plot_height)
 
     
     # add table caption
