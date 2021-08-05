@@ -74,6 +74,7 @@ mytheme <- theme_bw() +
                             color = "black"),
         axis.text.x = element_text(color = "black", angle = 45, vjust = 1, hjust = 1),
         axis.text.y = element_text(color = "black"),
+        axis.title.y = element_text(color = "black", margin = margin(t = 0, r = 20, b = 0, l = 0)),
         legend.title = element_blank(),
         legend.key = element_blank(),
         panel.grid.minor = element_blank(),
@@ -89,8 +90,7 @@ mytheme <- theme_bw() +
 
 select_option <- c(
   "When should I be monitoring?",
-  # "I have found a pest in my crop. What is the potential impact?"
-  "Key (rea-ltime) management information."
+  "Predict observed pest development."
 )
 
 pest_urls <- list(
@@ -144,7 +144,7 @@ ui <- shinyUI(
                              
                              selectInput("selection", label = h4("2. What do you want to know:"), 
                                          choices = select_option, 
-                                         selected = select_option[1],
+                                         selected = select_option[2],
                                          width = "100%"
                              ),
                              
@@ -223,6 +223,15 @@ ui <- shinyUI(
                       column(8,
                              
                              # HTML("<br/>"),
+                             
+                             
+                             switchInput(
+                               inputId = "toggle",
+                               label = "New plot?",
+                               value = TRUE
+                             ),
+                             
+                             
                              shiny::htmlOutput("runtitle"),
                              actionButton("update", "Predict"),
                              HTML("<br/>"),
@@ -374,7 +383,7 @@ server <- function(session, input, output){
   
   output$pestInfoUI <- renderUI({
     pesturl <- pest_urls[[input$species]]
-    HTML(paste0("<a href='", pesturl, "'>", "Click here for identification infromation on the selected pest!","</a>"))
+    HTML(paste0("<a href='", pesturl, "'>", "Click here for identification information on the selected pest!","</a>"))
   })
   
   # update the line of the map and the input date
@@ -407,9 +416,9 @@ server <- function(session, input, output){
   # change map title base on the input
   output$temptitle <- shiny::renderUI({
     if(input$selection == select_option[1]){
-      h4("5. Adjust the temperature (optional):")
+      h4("5. Adjust the temperature (optional):", align = "left")
     } else{
-      h4("6. Adjust the temperature (optional):")
+      h4("6. Adjust the temperature (optional):", align = "left")
     }
   })
   
@@ -508,19 +517,22 @@ server <- function(session, input, output){
     # to reset the plot by updating
     values$df <- NULL
     # do the for loop even if the input$stage is NULL because of input$selection
+   
     if(is.null(input$stage)){
       loops <- 1
       plot_height <- 400 # default plot height
     } else{
       loops <- input$stage
-      plot_height <- 400 + 150 * ifelse(length(input$stage) > 2, length(input$stage) - 2, 0)
+      if(!input$toggle){
+        plot_height <- 400 + 150 * ifelse(length(input$stage) > 2, length(input$stage) - 2, 0)
+      } else{
+        plot_height <- 400
+      }  
     }
-    # loops <- ifelse(is.null(input$stage), 1, input$stage)
+
     
-    nstage <- 0 # count the stage for separating plots
     for(i in seq_along(loops)){
       # browser()
-      nstage <- nstage + 1
       # update with the change in selection
       if(input$selection == select_option[2]){
         # browser()
@@ -553,7 +565,7 @@ server <- function(session, input, output){
         df$species <- paste0(stringr::str_pad(isolate(values$count), 2, pad="0"), ". ", insect$name, "\n",input$simname)
         mdf <- pivot_longer(df, cols = c("Time_start", "Time_end"))
         mdf$value <- as.Date(paste0(curYear,"-01-01")) + mdf$value
-        mdf <- mutate(mdf, type = 1) # add type for plotting multiple start stages
+        mdf <- mutate(mdf, type = input$stage[i]) # add type for plotting multiple start stages
         values$df <- rbind(values$df, mdf) # this append plots together
         # values$df <- rbind(df, mdf) # this append plots together
         # values$df <- mdf # this is for single plot
@@ -563,10 +575,22 @@ server <- function(session, input, output){
     
     
     # data <- values$df
+    
+    
+    
+    
     # get back to the wider form - fix this to have wide form from beginning
-    data <- values$df %>% 
-      pivot_wider(names_from = name, values_from = value) %>% 
-      as.data.frame()
+    if(!input$toggle){
+      data <- values$df %>% 
+        pivot_wider(names_from = name, values_from = value) %>% 
+        as.data.frame()
+    } else{
+      data <- values$df
+    }
+    
+    
+    
+    
     # browser()
     data$life <- factor(data$life)
     if("adult" %in% levels(data$life))
@@ -578,6 +602,7 @@ server <- function(session, input, output){
     weekspan <- as.numeric(max(data$value) - min(data$value)) / 7
     
     # create the rectangle data
+    if(!input$toggle){
     data_rect <- data.frame(x1 = values$crop_line$date[1], 
                             x2 = values$crop_line$date[2], 
                             # y1 = str_to_sentence(dplyr::first(values$stage_names)), 
@@ -586,6 +611,13 @@ server <- function(session, input, output){
                             y2 = length(unique(values$stage_names)) + 0.5,
                             # fill = "green",
                             action = "Crop stage of concern")
+    } else{
+      data_rect <- data.frame(x1 = values$crop_line$date[1], 
+                              x2 = values$crop_line$date[2], 
+                              y1 = 0, # to stretch the rectangle
+                              y2 = length(unique(data$type)) + 0.5
+      )
+    }
     
     # change the colour of growth bars
     barcolour <- rep("gray75", length(values$stage_names))
@@ -596,7 +628,11 @@ server <- function(session, input, output){
 
     # data for the text on the risk scenario
     text_dt <- data.frame(x = mean(values$crop_line$date), 
-                          y = dplyr::last(levels(data$stage)),
+                          
+                          
+                          y = ifelse(input$toggle, last(data$type), dplyr::last(levels(data$stage))),
+                          # y = dplyr::last(levels(data$stage)),
+                          
                           t = values$table %>%
                             filter(Susceptible_crop_stage_of_interest == input$impact) %>% 
                             pull(Susceptible_crop_stage_of_interest))
@@ -611,6 +647,8 @@ server <- function(session, input, output){
         # remove the alpha and add pale colours
         # browser()
         
+        if(!input$toggle){
+          
         p <- ggplot(data = data) +
           geom_linerange(aes(y = stage,
                              xmin = Time_start,
@@ -625,12 +663,6 @@ server <- function(session, input, output){
           geom_point(aes(x = Time_end, y = stage, colour = stage),
                      size = 4,
                      position = position_dodge2(width = 0.7)) +
-          # geom_rect(aes(xmin = x1, xmax = x2, 
-          #               ymin = y1, ymax = y2, 
-          #               # text = paste0(action),
-          #               fill = fill), 
-          #           data = data_rect, 
-          #           alpha = 0.3) +
           annotate(geom = "rect", 
                    xmin = as.Date(data_rect$x1),
                    xmax = as.Date(data_rect$x2),
@@ -660,6 +692,56 @@ server <- function(session, input, output){
                "
           ) +
           mytheme
+        
+        } else{
+          
+          pt <- data %>%
+            group_by(type) %>%
+            summarise(first = dplyr::first(value),
+                      last = dplyr::last(value)) %>%
+            pivot_longer(cols = 2:3) %>%
+            mutate(stage = ifelse(name == "first", levels(data$stage)[1], levels(data$stage)[length(levels(data$stage))]))
+          
+          # library(ggrepel)
+          lbl <- data %>% 
+            group_by(type, stage) %>% 
+            summarise(x = mean(value), y = type)
+          
+          p <- ggplot(data = data, aes(x = value, y = type, color = stage, label = stage)) +
+            geom_line(size = 8, # lineend = "round",
+                      position = position_dodge2(width = dodge)) +
+            geom_point(data = pt, aes(x = value, y = type, color = stage), size = 7) +
+            geom_text(data = lbl, aes(x = x, y = y, label = stage), color = "black") +
+            annotate(geom = "rect", 
+                     xmin = as.Date(data_rect$x1),
+                     xmax = as.Date(data_rect$x2),
+                     ymin = data_rect$y1, 
+                     ymax = data_rect$y2,
+                     fill = "red", 
+                     alpha = 0.3) +
+            geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3, inherit.aes = FALSE) +
+            scale_color_manual(values = barcolour) +
+            scale_fill_manual(values = c("red")) +
+            scale_x_date(limits = c(min(data$value, as.Date(data_rect$x1)),
+                                    max(data$value, as.Date(data_rect$x2))),
+                         date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
+                         date_minor_breaks = "1 week",
+                         date_labels = "%d %b") +
+            geom_hline(yintercept = seq_along(unique(data$type)[-1]) + .5,
+                       linetype = "dashed",
+                       size = .1) +
+            labs(x = NULL, 
+                 y = "Observed stages",
+                 caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
+               <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
+               <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+               "
+            ) +
+            mytheme
+          
+        }
+        
+        
         
         # add observation line
         if(input$selection == select_option[2]){
@@ -702,17 +784,14 @@ server <- function(session, input, output){
                        filter(Susceptible_crop_stage_of_interest == input$impact) %>%
                        pull(Management_ext_info) %>%
                        unique()),
-             "<h4>Management action:</h4>",
+             "<hr/>",
+             sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
              sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
                        filter(Susceptible_crop_stage_of_interest == input$impact) %>%
                        pull(Management_actions) %>%
                        unique()),
-             "<br/>")
-        # h5(values$table %>% # values$table %>%
-        #      filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-        #      pull(Management_ext_info) %>%
-        #      unique()
-        # )
+             # "<br/>"
+             "<hr/>")
         
       })
     })
