@@ -751,8 +751,8 @@ server <- function(session, input, output){
                               linetype = 6,
                               color = "black") +
             geom_text(x = input$observe_date - 2, 
-                      y = "L4",
-                      angle = 90,
+                      y = ifelse(input$toggle, length(unique(data$type)) + 0.5, "L4"),
+                      angle = 0,
                       size = 4.5,
                       label = "Observed date",
                       color = "black")
