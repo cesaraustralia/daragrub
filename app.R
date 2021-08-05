@@ -709,7 +709,7 @@ server <- function(session, input, output){
           
           p <- ggplot(data = data, aes(x = value, y = type, color = stage, label = stage)) +
             geom_line(size = 8, # lineend = "round",
-                      position = position_dodge2(width = dodge)) +
+                      position = position_dodge2(width = 0.7)) +
             geom_point(data = pt, aes(x = value, y = type, color = stage), size = 7) +
             geom_text(data = lbl, aes(x = x, y = y, label = stage), color = "black") +
             annotate(geom = "rect", 
