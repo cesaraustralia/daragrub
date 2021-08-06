@@ -1,6 +1,0 @@
-﻿Pest,Species,Crop,Potentil_impacts,Susceptible_crop_stage_of_interest,Pest_monitoring_life_stage,Pest_risk_life_stage,Management_actions,Link_to_resources
-Common_Armyworm,Mythimna convecta,Barley,Head lopping after head emergence,Head emergence to early plant senescence ,"L1, L2","L5, L6",3 caterpillars per square metre,https://www.agric.wa.gov.au/grains/management-armyworm-cereal-crops?page=0%2C2#smartpaging_toc_p2_s0_h2
-Common_Armyworm,Mythimna convecta,Barley,They sestroy the whole farm,Second risk ,L2,"L4, L5",3 caterpillars per square metre,https://www.agric.wa.gov.au/grains/management-armyworm-cereal-crops?page=0%2C2#smartpaging_toc_p2_s0_h2
-Native_Budworm,Helicoverpa puntigera,Canola,Damage at crop maturation,Crop maturation,"L1, L2","L4, L5, L6",>6 larvae per 10 sweeps,https://www.agric.wa.gov.au/mycrop/diagnosing-native-budworm-canola
-Common_Armyworm,Mythimna convecta,Wheat,Early season defoliation,Crop emergence to mid tillering ,"L1, L2","L5, L6",10 larvey per 1m sq (check it),https://www.agric.wa.gov.au/mycrop/diagnosing-native-budworm-canola
-Native_Budworm,Helicoverpa puntigera,Barley,Early season defoliation,Crop emergence to mid tillering ,L2,"L5, L6",10 larvey per 1m sq (check it),https://www.agric.wa.gov.au/grains/management-armyworm-cereal-crops?page=0%2C2#smartpaging_toc_p2_s0_h2
