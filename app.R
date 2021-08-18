@@ -108,7 +108,7 @@ len_tabel <- tibble::tribble(
   "L5",  "L5 (24 - 28 mm)", "L5 (18 - 30 mm)",
   "L6", "L6 (29 - 40+ mm)", "L6 (25 - 40 mm)",
   "pupa",             "pupa",            "pupa",
-  "adalt",            "adalt",           "adalt"
+  "adult",            "adult",           "adult"
 )
 
 
@@ -185,7 +185,7 @@ ui <- shinyUI(
                              ),
                              
                              
-                             
+                             HTML("<br/>"),
                              # add dynamic title for temp adjustment
                              shiny::htmlOutput("temptitle"),
                              # change the background colour for the slider
@@ -374,7 +374,7 @@ server <- function(session, input, output){
   
   output$pestInfoUI <- renderUI({
     pesturl <- pest_urls[[input$species]]
-    HTML(paste0("<a href='", pesturl, "'>", "Click here for identification information on the selected pest!","</a>"))
+    HTML(sprintf("<a href='%s' target='_blank' rel='noopener noreferrer'> Click here for identification information on the selected pest!</a>", pesturl))
   })
   
   # update the line of the map and the input date
