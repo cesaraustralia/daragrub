@@ -809,7 +809,7 @@ server <- function(session, input, output) {
           # "<br/>",
           sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
             filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-            pull(Management_ext_info) %>%
+            pull(Potentil_impacts_ext_info) %>%
             unique()),
           "<hr/>",
           sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
