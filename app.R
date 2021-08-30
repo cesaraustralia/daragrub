@@ -600,23 +600,12 @@ server <- function(session, input, output) {
     weekspan <- as.numeric(max(data$value) - min(data$value)) / 7
 
     # create the rectangle data
-    # if(!input$toggle){
-    # data_rect <- data.frame(x1 = values$crop_line$date[1],
-    #                         x2 = values$crop_line$date[2],
-    #                         # y1 = str_to_sentence(dplyr::first(values$stage_names)),
-    #                         # y2 = str_to_sentence(dplyr::last(values$stage_names)),
-    #                         y1 = 0, # to stretch the rectangle
-    #                         y2 = length(unique(values$stage_names)) + 0.5,
-    #                         # fill = "green",
-    #                         action = "Crop stage of concern")
-    # } else{
     data_rect <- data.frame(
       x1 = values$crop_line$date[1],
       x2 = values$crop_line$date[2],
       y1 = 0, # to stretch the rectangle
       y2 = length(unique(data$type)) + 0.5
     )
-    # }
 
     # change the colour of growth bars
     barcolour <- rep("gray75", length(values$stage_names))
@@ -641,57 +630,6 @@ server <- function(session, input, output) {
     # output$phenology <- renderPlotly({
     output$phenology <- renderPlot({
       isolate({
-        # if you want to have a round line with in ggplotly
-        # remove the alpha and add pale colours
-        # browser()
-
-        # if(!input$toggle){
-        #
-        # p <- ggplot(data = data) +
-        #   geom_linerange(aes(y = stage,
-        #                      xmin = Time_start,
-        #                      xmax = Time_end,
-        #                      colour = stage),
-        #                  size = 5,
-        #                  # lineend = "round",
-        #                  position = position_dodge2(width = 0.7)) +
-        #   geom_point(aes(x = Time_start, y = stage, colour = stage),
-        #              size = 4,
-        #              position = position_dodge2(width = 0.7)) +
-        #   geom_point(aes(x = Time_end, y = stage, colour = stage),
-        #              size = 4,
-        #              position = position_dodge2(width = 0.7)) +
-        #   annotate(geom = "rect",
-        #            xmin = as.Date(data_rect$x1),
-        #            xmax = as.Date(data_rect$x2),
-        #            ymin = data_rect$y1,
-        #            ymax = data_rect$y2,
-        #            fill = "red",
-        #            alpha = 0.3) +
-        #   geom_vline(data = values$crop_line, color = "gray60",
-        #              aes(xintercept = as.numeric(date))) +
-        #   # scale_linetype_manual(values = unique(as.numeric(values$crop_line$type))) +
-        #   geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3) +
-        #   scale_color_manual(values = barcolour) +
-        #   scale_fill_manual(values = c("red")) +
-        #   scale_x_date(limits = c(min(data$Time_start, as.Date(data_rect$x1)),
-        #                           max(data$Time_end, as.Date(data_rect$x2))),
-        #                date_breaks = paste(ifelse(weekspan > 20, 4, 1), "weeks"),
-        #                date_minor_breaks = "1 week",
-        #                date_labels = "%d %b") +
-        #   geom_hline(yintercept = seq_along(unique(data$stage)[-1]) + .5,
-        #              linetype = "dashed",
-        #              size = .1) +
-        #   labs(x = NULL,
-        #        y = NULL,
-        #        caption = "<br/><b style='color:blue'>Blue:</b> <b>pest monitoring life stage(s)</b>
-        #        <b style='color:red'>Red:</b> <b>pest risk life stage(s)</b> <br/>
-        #        <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
-        #        "
-        #   ) +
-        #   mytheme
-        #
-        # } else{
 
         pt <- data %>%
           group_by(type) %>%
@@ -720,8 +658,8 @@ server <- function(session, input, output) {
             xmax = as.Date(data_rect$x2),
             ymin = data_rect$y1,
             ymax = data_rect$y2,
-            fill = "red",
-            alpha = 0.4
+            fill = "yellow",
+            alpha = 0.2
           ) +
           geom_text(data = text_dt, aes(x = x, y = y, label = t), nudge_y = 0.3, inherit.aes = FALSE) +
           scale_color_manual(values = barcolour) +
@@ -743,10 +681,6 @@ server <- function(session, input, output) {
           labs(
             x = NULL,
             y = "Observed stages",
-            #      caption = "<br/><b style='color:#0000FF66'>Blue:</b> <b>pest monitoring life stage(s)</b>
-            #    <b style='color:#FF000066'>Red:</b> <b>pest risk life stage(s)</b> <br/>
-            #    <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
-            #    "
             caption = "<br/>
             <b style='color:#0000FF66'>Pest monitoring life stage(s) </b>
             <b style='color:#FF000066'>Pest risk life stage(s)</b>
@@ -757,7 +691,6 @@ server <- function(session, input, output) {
           mytheme
 
         # }
-
 
 
         # add observation line
@@ -823,42 +756,7 @@ server <- function(session, input, output) {
       })
     })
 
-    # show the information table
-    # output$outtab <- DT::renderDataTable({
-    #
-    #   isolate({
-    #
-    #     cell_risk <- values$table %>%
-    #       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-    #       pull(Pest_risk_life_stage) %>%
-    #       unique()
-    #     cell_monit <- values$table %>% # values$table %>%
-    #       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-    #       pull(Pest_monitoring_life_stage) %>%
-    #       unique()
-    #
-    #     values$table %>%
-    #       dplyr::select(Pest,
-    #                     Species,
-    #                     Crop,
-    #                     Potentil_impacts,
-    #                     Susceptible_crop_stage_of_interest,
-    #                     Pest_monitoring_life_stage,
-    #                     Pest_risk_life_stage,
-    #                     Management_actions,
-    #                     Link_to_resources) %>%
-    #       filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-    #       setNames(., gsub("_", " ", names(.))) %>%
-    #       DT::datatable(escape = FALSE) %>% # show URLs - don't skip the html code
-    #       DT::formatStyle(
-    #         c("Pest risk life stage", "Pest monitoring life stage"),
-    #         backgroundColor = DT::styleEqual(levels = c(cell_risk, cell_monit),
-    #                                          values = c(alpha("red", 0.3), alpha("blue", 0.3)))
-    #       )
-    #
-    #   })
-    #
-    # })
+
   })
 }
 
