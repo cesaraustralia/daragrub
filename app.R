@@ -732,24 +732,36 @@ server <- function(session, input, output) {
       isolate({
         HTML(
           "<h4>Potential impacts:</h4>",
-          sprintf(
-            "<h5>%s</h5>",
-            values$table %>% # values$table %>%
-              filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-              pull(Potentil_impacts) %>%
-              unique()
+          sprintf("<h5>%s</h5>",
+                  values$table %>% 
+                    filter(
+                      Region == input_coords$region[1],
+                      Susceptible_crop_stage_of_interest == input$impact
+                    ) %>%
+                    pull(Potentil_impacts) %>%
+                    unique()
           ),
           # "<br/>",
-          sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
-            filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-            pull(Potentil_impacts_ext_info) %>%
-            unique()),
+          sprintf("<h5>%s</h5>", 
+                  values$table %>%
+                    filter(
+                      Region == input_coords$region[1],
+                      Susceptible_crop_stage_of_interest == input$impact
+                    ) %>%
+                    pull(Potentil_impacts_ext_info) %>%
+                    unique()
+          ),
           "<hr/>",
           sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
-          sprintf("<h5>%s</h5>", values$table %>% # values$table %>%
-            filter(Susceptible_crop_stage_of_interest == input$impact) %>%
-            pull(Management_actions) %>%
-            unique()),
+          sprintf("<h5>%s</h5>", 
+                  values$table %>%
+                    filter(
+                      Region == input_coords$region[1],
+                      Susceptible_crop_stage_of_interest == input$impact
+                    ) %>%
+                    pull(Management_actions) %>%
+                    unique()
+          ),
           # "<br/>"
           "<hr/>"
         )
