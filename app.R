@@ -185,9 +185,10 @@ ui <- shinyUI(
           6,
           uiOutput("stageUI")
         ),
-        HTML("<br/>"),
         # add dynamic title for temp adjustment
+        HTML("<br/>"),
         shiny::htmlOutput("temptitle"),
+        h5("This changes the temperature for selected location"),
         # change the background colour for the slider
         tags$style(make_css(
           list(
@@ -227,10 +228,9 @@ ui <- shinyUI(
         span(textOutput("checklatlong"), style = "color:red"),
         # add a leaflet map
         leafletOutput("smap", height = 300)
+        
       ),
-      column(
-        8,
-
+      column(8,
         # HTML("<br/>"),
         shiny::htmlOutput("runtitle"),
         actionButton("update", "Predict"),
@@ -243,7 +243,10 @@ ui <- shinyUI(
         # output plot
         HTML("<br/>"),
         # plotlyOutput("phenology"),
-        plotOutput("phenology")
+        plotOutput("phenology"),
+        
+        HTML("<br/>"),
+        downloadButton("dlreport", label = "Download report")
       )
     )
     # new tab -----------------------------------------------------------------
@@ -409,8 +412,8 @@ server <- function(session, input, output) {
     updateDateRangeInput(
       session = session,
       inputId = "crop_dev",
-      start = paste(curYear, date_filer$Start_date, sep = "-"),
-      end = paste(curYear, date_filer$End_date, sep = "-")
+      start = paste(date_filer$Start_date, curYear, sep = "-"),
+      end = paste(date_filer$End_date, curYear, sep = "-")
     )
   })
   ##*****************************************************
@@ -420,9 +423,9 @@ server <- function(session, input, output) {
   # change map title base on the input
   output$temptitle <- shiny::renderUI({
     if (input$selection == select_option[1]) {
-      h4("5. Adjust the temperature (optional):", align = "left")
+      h4("5. Adjust the average temperature (optional):", float = "left")
     } else {
-      h4("6. Adjust the temperature (optional):", align = "left")
+      h4("6. Adjust average temperature (optional):", float = "left")
     }
   })
 
@@ -446,7 +449,7 @@ server <- function(session, input, output) {
 
   output$datetitle <- shiny::renderUI({
     # h5(sprintf("What is the approximate date for this growth stage of %s:", tolower(input$crop)))
-    h5("Adjust the default crop stage for your region if needed:")
+    h5("Please adjust the default crop stage for your region:")
   })
 
 
@@ -685,7 +688,7 @@ server <- function(session, input, output) {
             <b style='color:#0000FF66'>Pest monitoring life stage(s) </b>
             <b style='color:#FF000066'>Pest risk life stage(s)</b>
             <br/>
-            <p>Consider management action if high risk scenario identified otherwise continue monitoring.</p>
+            <p>Consider management action if crop stage (yellow box) overlaps with pest risk periods (big larvae with red colour) otherwise continue monitoring.</p>
             "
           ) +
           mytheme
@@ -731,7 +734,7 @@ server <- function(session, input, output) {
     output$tablecaption <- shiny::renderUI({
       isolate({
         HTML(
-          "<h4>Potential impacts:</h4>",
+          "<h4>Potential impacts during risk periods (red bars):</h4>",
           sprintf("<h5>%s</h5>",
                   values$table %>% 
                     filter(
