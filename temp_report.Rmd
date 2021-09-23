@@ -1,0 +1,22 @@
+---
+title: "Pest Growth Simulation Report"
+author: "Cesar Australia"
+date: "`r Sys.Date()`"
+output: pdf_document
+params: 
+    plot_pest: NULL
+    dt_pest: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pest development
+
+
+
+```{r echo=FALSE}
+(params$plot_pest)
+
+```

@@ -2,6 +2,7 @@ library(tidyverse)
 library(shiny)
 library(shinythemes)
 library(shinyWidgets)
+library(rmarkdown)
 library(tableHTML)
 library(ggtext)
 library(maptools)
@@ -188,7 +189,7 @@ ui <- shinyUI(
         # add dynamic title for temp adjustment
         HTML("<br/>"),
         shiny::htmlOutput("temptitle"),
-        h5("This changes the temperature for selected location"),
+        h5("This changes the temperature for predicting pest growth"),
         # change the background colour for the slider
         tags$style(make_css(
           list(
@@ -246,7 +247,8 @@ ui <- shinyUI(
         plotOutput("phenology"),
         
         HTML("<br/>"),
-        downloadButton("dlreport", label = "Download report")
+        uiOutput("dlUI")
+        
       )
     )
     # new tab -----------------------------------------------------------------
@@ -264,6 +266,7 @@ server <- function(session, input, output) {
   values$stage_names <- NA
   values$monitor_stage <- NA
   values$crop_date <- Sys.Date()
+  values$pheno_plot <- NULL
 
 
   # update impact scenario and crop options
@@ -724,6 +727,8 @@ server <- function(session, input, output) {
         }
       })
 
+      browser()
+      values$pheno_plot <- p
       plot(p)
       # ggplotly(p, tooltip = c("text"))
     })
@@ -756,7 +761,7 @@ server <- function(session, input, output) {
           ),
           "<hr/>",
           sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
-          sprintf("<h5>%s</h5>", 
+          sprintf("<h5>%s - big larvae close to risk period</h5>", 
                   values$table %>%
                     filter(
                       Region == input_coords$region[1],
@@ -770,9 +775,34 @@ server <- function(session, input, output) {
         )
       })
     })
+    
 
-
+    # add download button
+    output$dlUI <- shiny::renderUI({
+      downloadButton(outputId = "report", label = "Generate report")
+    })
+    
+    
   })
+  
+  
+  output$report <- downloadHandler(
+    filename <-  "pestimator_report.pdf",
+    content <- function(file) {
+      # browser()
+      tempReport <- file.path(tempdir(), "temp_report.Rmd")
+      file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)
+      params <- list(
+        plot_pest = values$pheno_plot,
+        dt_pest = NULL
+      )
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
+  
 }
 
 
