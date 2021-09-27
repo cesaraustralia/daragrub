@@ -629,12 +629,9 @@ server <- function(session, input, output) {
         pull(Susceptible_crop_stage_of_interest)
     )
 
-
-
-    # output$phenology <- renderPlotly({
-    output$phenology <- renderPlot({
+    generate_plot <- reactive({
       isolate({
-
+        
         pt <- data %>%
           group_by(type) %>%
           summarise(
@@ -643,12 +640,12 @@ server <- function(session, input, output) {
           ) %>%
           pivot_longer(cols = 2:3) %>%
           mutate(stage = ifelse(name == "first", levels(data$stage)[1], levels(data$stage)[length(levels(data$stage))]))
-
+        
         # library(ggrepel)
         lbl <- data %>%
           group_by(type, stage) %>%
           summarise(x = mean(value), y = type)
-
+        
         p <- ggplot(data = data, aes(x = value, y = type, color = stage, label = stage)) +
           geom_line(
             size = 8, # lineend = "round",
@@ -694,9 +691,6 @@ server <- function(session, input, output) {
           ) +
           mytheme
 
-        # }
-
-
         # add observation line
         if (input$selection == select_option[2]) {
           p <- p + geom_vline(
@@ -724,12 +718,19 @@ server <- function(session, input, output) {
             )
         }
       })
-
-      plot(p)
-      ggsave(filename = "phenology.png", plot = p, device = 'png')
-      # ggplotly(p, tooltip = c("text"))
     })
-    # }, height = plot_height)
+
+    # output$phenology <- renderPlotly({
+    #   ggplotly(p, tooltip = c("text"))
+    # })
+    output$phenology <- renderPlot({
+      req(generate_plot())
+      plot(generate_plot())
+      
+      # save plot in home
+      ggsave(filename = "~/phenology.png", plot = generate_plot(), device = 'png')
+      
+    })
 
     # add reactive values
     values$impact1 <- NULL
@@ -758,7 +759,6 @@ server <- function(session, input, output) {
       pull(Management_actions) %>%
       unique()
     
-    
     # add table caption
     output$tablecaption <- shiny::renderUI({
       isolate({
@@ -782,7 +782,6 @@ server <- function(session, input, output) {
       downloadButton(outputId = "report", label = "Generate report")
     })
     
-    
   })
   
   
@@ -790,11 +789,12 @@ server <- function(session, input, output) {
     filename <-  "pestimator_report.pdf",
     content <- function(file) {
       # browser()
+      # req(generate_plot())
       tempReport <- file.path(tempdir(), "temp_report.Rmd")
       file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)
-      file.copy("phenology.png", dirname(tempReport), overwrite = TRUE)
+      file.copy("~/phenology.png", dirname(tempReport), overwrite = TRUE)
       params <- list(
-        # plot_pest = values$pheno_plot,
+        # plot_pest = generate_plot(),
         dt_pest = values$df %>%
           pivot_wider(names_from = name, values_from = value) %>% 
           dplyr::select(- Stage_duration, -long, -lat, - generation),

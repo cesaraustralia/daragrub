@@ -3,6 +3,7 @@ title: "Pest Growth Simulation Report"
 date: "`r Sys.Date()`"
 output: pdf_document
 params: 
+    # plot_pest: NULL
     dt_pest: NULL
     long: NULL
     lat: NULL
@@ -33,6 +34,7 @@ Crop stage of interest: *`r params$stage`*
 
 ```{r , echo=FALSE, out.width = '100%'}
 knitr::include_graphics("phenology.png")
+# plot(params$plot_pest)
 
 ```
 
