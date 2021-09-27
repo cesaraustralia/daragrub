@@ -266,8 +266,6 @@ server <- function(session, input, output) {
   values$stage_names <- NA
   values$monitor_stage <- NA
   values$crop_date <- Sys.Date()
-  values$pheno_plot <- NULL
-
 
   # update impact scenario and crop options
   observeEvent(input$species, {
@@ -727,49 +725,51 @@ server <- function(session, input, output) {
         }
       })
 
-      browser()
-      values$pheno_plot <- p
       plot(p)
+      ggsave(filename = "plots/phenology.png", plot = p, device = 'png')
       # ggplotly(p, tooltip = c("text"))
     })
     # }, height = plot_height)
 
-
+    # add reactive values
+    values$impact1 <- NULL
+    values$impact2 <- NULL
+    values$mngaction <- NULL
+    
+    values$impact1 <- values$table %>% 
+      filter(
+        Region == input_coords$region[1],
+        Susceptible_crop_stage_of_interest == input$impact
+      ) %>%
+      pull(Potentil_impacts) %>%
+      unique()
+    values$impact2 <- values$table %>%
+      filter(
+        Region == input_coords$region[1],
+        Susceptible_crop_stage_of_interest == input$impact
+      ) %>%
+      pull(Potentil_impacts_ext_info) %>%
+      unique()
+    values$mngaction <- values$table %>%
+      filter(
+        Region == input_coords$region[1],
+        Susceptible_crop_stage_of_interest == input$impact
+      ) %>%
+      pull(Management_actions) %>%
+      unique()
+    
+    
     # add table caption
     output$tablecaption <- shiny::renderUI({
       isolate({
         HTML(
           "<h4>Potential impacts during risk periods (red bars):</h4>",
-          sprintf("<h5>%s</h5>",
-                  values$table %>% 
-                    filter(
-                      Region == input_coords$region[1],
-                      Susceptible_crop_stage_of_interest == input$impact
-                    ) %>%
-                    pull(Potentil_impacts) %>%
-                    unique()
-          ),
+          sprintf("<h5>%s</h5>", values$impact1),
           # "<br/>",
-          sprintf("<h5>%s</h5>", 
-                  values$table %>%
-                    filter(
-                      Region == input_coords$region[1],
-                      Susceptible_crop_stage_of_interest == input$impact
-                    ) %>%
-                    pull(Potentil_impacts_ext_info) %>%
-                    unique()
-          ),
+          sprintf("<h5>%s</h5>", values$impact2),
           "<hr/>",
           sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
-          sprintf("<h5>%s - big larvae close to risk period</h5>", 
-                  values$table %>%
-                    filter(
-                      Region == input_coords$region[1],
-                      Susceptible_crop_stage_of_interest == input$impact
-                    ) %>%
-                    pull(Management_actions) %>%
-                    unique()
-          ),
+          sprintf("<h5>%s - big larvae close to risk period</h5>", values$mngaction),
           # "<br/>"
           "<hr/>"
         )
@@ -792,9 +792,20 @@ server <- function(session, input, output) {
       # browser()
       tempReport <- file.path(tempdir(), "temp_report.Rmd")
       file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)
+      file.copy("plots/phenology.png", dirname(tempReport), overwrite = TRUE)
       params <- list(
-        plot_pest = values$pheno_plot,
-        dt_pest = NULL
+        # plot_pest = values$pheno_plot,
+        dt_pest = values$df %>%
+          pivot_wider(names_from = name, values_from = value) %>% 
+          dplyr::select(- Stage_duration, -long, -lat, - generation),
+        long = input_coords$long,
+        lat = input_coords$lat,
+        region = input_coords$region[1],
+        crop = input$crop,
+        stage = input$impact,
+        mngaction = values$mngaction,
+        impact1 =  values$impact1,
+        impact2 =  values$impact2
       )
       rmarkdown::render(tempReport, output_file = file,
                         params = params,

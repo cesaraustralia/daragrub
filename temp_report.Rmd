@@ -1,22 +1,55 @@
 ---
 title: "Pest Growth Simulation Report"
-author: "Cesar Australia"
 date: "`r Sys.Date()`"
 output: pdf_document
 params: 
-    plot_pest: NULL
     dt_pest: NULL
+    long: NULL
+    lat: NULL
+    region: NULL
+    crop: NULL
+    stage: NULL
+    mngaction: NULL
+    impact1: NULL
+    impact2: NULL
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Pest development
+Report generated with the [Pestimator](http://ec2-52-65-31-166.ap-southeast-2.compute.amazonaws.com/Pestimator/) app.
 
+## Selected Location:
+Longitude: *`r params$long`*
+Latitude: *`r params$lat`*
+Region: *`r params$region`*
 
+## Crop information
+Crop: *`r params$crop`*
+Crop stage of interest: *`r params$stage`*
 
-```{r echo=FALSE}
-(params$plot_pest)
+## Predicted plot
+
+```{r , echo=FALSE, out.width = '100%'}
+knitr::include_graphics("phenology.png")
 
 ```
+
+## Management action
+
+Potential impacts during risk periods (red bars): \
+*`r params$impact1`* \
+*`r params$impact2`*
+\
+\
+Management action (`r params$region` region): \
+*`r params$mngaction`* - big larvae close to risk period
+
+## Table of simulated pest growth
+
+```{r}
+knitr::kable(params$dt_pest)
+
+```
+
