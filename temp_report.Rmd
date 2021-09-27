@@ -2,24 +2,23 @@
 title: "Pest Growth Simulation Report"
 date: "`r Sys.Date()`"
 output: pdf_document
-params: 
-    # plot_pest: NULL
-    dt_pest: NULL
-    long: NULL
-    lat: NULL
-    region: NULL
-    crop: NULL
-    stage: NULL
-    mngaction: NULL
-    impact1: NULL
-    impact2: NULL
+# params: 
+#     dt_pest: NULL
+#     long: NULL
+#     lat: NULL
+#     region: NULL
+#     crop: NULL
+#     stage: NULL
+#     mngaction: NULL
+#     impact1: NULL
+#     impact2: NULL
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-Report generated with the [Pestimator](http://ec2-52-65-31-166.ap-southeast-2.compute.amazonaws.com/Pestimator/) app.
+Report generated with the [Pestimator app](http://ec2-52-65-31-166.ap-southeast-2.compute.amazonaws.com/Pestimator/).
 
 ## Selected Location:
 Longitude: *`r params$long`*
@@ -34,7 +33,7 @@ Crop stage of interest: *`r params$stage`*
 
 ```{r , echo=FALSE, out.width = '100%'}
 knitr::include_graphics("phenology.png")
-# plot(params$plot_pest)
+# print(params$plot_pest)
 
 ```
 

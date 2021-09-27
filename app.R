@@ -726,10 +726,8 @@ server <- function(session, input, output) {
     output$phenology <- renderPlot({
       req(generate_plot())
       plot(generate_plot())
-      
       # save plot in home
       ggsave(filename = "~/phenology.png", plot = generate_plot(), device = 'png')
-      
     })
 
     # add reactive values
@@ -788,13 +786,11 @@ server <- function(session, input, output) {
   output$report <- downloadHandler(
     filename <-  "pestimator_report.pdf",
     content <- function(file) {
-      # browser()
-      # req(generate_plot())
       tempReport <- file.path(tempdir(), "temp_report.Rmd")
       file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)
       file.copy("~/phenology.png", dirname(tempReport), overwrite = TRUE)
-      params <- list(
-        # plot_pest = generate_plot(),
+      environ <- new.env()
+      environ$params <- list(
         dt_pest = values$df %>%
           pivot_wider(names_from = name, values_from = value) %>% 
           dplyr::select(- Stage_duration, -long, -lat, - generation),
@@ -807,9 +803,12 @@ server <- function(session, input, output) {
         impact1 =  values$impact1,
         impact2 =  values$impact2
       )
-      rmarkdown::render(tempReport, output_file = file,
-                        params = params,
-                        envir = new.env(parent = globalenv())
+      rmarkdown::render(tempReport, 
+                        output_file = file,
+                        output_format = rmarkdown::pdf_document(),
+                        # params = params,
+                        # envir = new.env(parent = globalenv())
+                        envir = environ
       )
     }
   )
