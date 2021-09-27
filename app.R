@@ -726,7 +726,7 @@ server <- function(session, input, output) {
       })
 
       plot(p)
-      ggsave(filename = "plots/phenology.png", plot = p, device = 'png')
+      ggsave(filename = "phenology.png", plot = p, device = 'png')
       # ggplotly(p, tooltip = c("text"))
     })
     # }, height = plot_height)
@@ -792,7 +792,7 @@ server <- function(session, input, output) {
       # browser()
       tempReport <- file.path(tempdir(), "temp_report.Rmd")
       file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)
-      file.copy("plots/phenology.png", dirname(tempReport), overwrite = TRUE)
+      file.copy("phenology.png", dirname(tempReport), overwrite = TRUE)
       params <- list(
         # plot_pest = values$pheno_plot,
         dt_pest = values$df %>%
