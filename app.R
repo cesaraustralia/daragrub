@@ -784,7 +784,7 @@ server <- function(session, input, output) {
   
   
   output$report <- downloadHandler(
-    filename <-  "pestimator_report.pdf",
+    filename <-  sprintf("pestimator_report_%s.pdf", gsub("-", "_", Sys.Date())),
     content <- function(file) {
       tempReport <- file.path(tempdir(), "temp_report.Rmd")
       file.copy("temp_report.Rmd", tempReport, overwrite = TRUE)

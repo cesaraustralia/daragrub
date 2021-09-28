@@ -2,16 +2,6 @@
 title: "Pest Growth Simulation Report"
 date: "`r Sys.Date()`"
 output: pdf_document
-# params: 
-#     dt_pest: NULL
-#     long: NULL
-#     lat: NULL
-#     region: NULL
-#     crop: NULL
-#     stage: NULL
-#     mngaction: NULL
-#     impact1: NULL
-#     impact2: NULL
 ---
 
 ```{r setup, include=FALSE}
