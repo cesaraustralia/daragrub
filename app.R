@@ -413,8 +413,8 @@ server <- function(session, input, output) {
     updateDateRangeInput(
       session = session,
       inputId = "crop_dev",
-      start = paste(date_filer$Start_date, curYear, sep = "-"),
-      end = paste(date_filer$End_date, curYear, sep = "-")
+      start = lubridate::dmy(paste(date_filer$Start_date, curYear, sep = "-")),
+      end = lubridate::dmy(paste(date_filer$End_date, curYear, sep = "-"))
     )
   })
   ##*****************************************************
