@@ -47,7 +47,7 @@ for (bug in bugs) {
 # read scenario data, including pest names, cops, scenarios...
 # scenrio_table <- read_csv("data/pestimate_main_db.csv") %>%
 scenrio_table <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRfb4RrNC2Z6SJVPD4cFw24O7WEyVsncTzKH8ByjE3mVXj1xylkmgWsCWFDlniq93OEC5YaJxgserWH/pub?gid=2101234815&single=true&output=csv") %>% 
-  drop_na() %>% 
+  # drop_na() %>% 
   mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
 
 # if the google sheet is not read, read the local file
@@ -124,6 +124,21 @@ len_tabel <- tibble::tribble(
   "adult", "adult", "adult"
 )
 
+# define invalid values
+invalid <- function(x){
+  if (missing(x) || is.null(x) || length(x) == 0 || is(x, "try-error")) {
+    return(TRUE)
+  }
+  if (is.list(x)) {
+    return(all(sapply(x, invalid)))
+  }
+  else if (is.vector(x)) {
+    return(all(is.na(x)))
+  }
+  else {
+    return(FALSE)
+  }
+}
 
 # ui ----------------------------------------------------------------------
 ui <- shinyUI(
@@ -686,7 +701,7 @@ server <- function(session, input, output) {
             <b style='color:#0000FF66'>Pest monitoring life stage(s) </b>
             <b style='color:#FF000066'>Pest risk life stage(s)</b>
             <br/>
-            <p>Consider management action if crop stage (yellow box) overlaps with pest risk periods (big larvae with red colour) otherwise continue monitoring.</p>
+            <p>Consider consulting with an advisor if crop stage (yellow box) overlaps with pest risk periods (big larvae with red colour) otherwise continue monitoring.</p>
             "
           ) +
           mytheme
@@ -753,24 +768,41 @@ server <- function(session, input, output) {
       filter(
         Region == input_coords$region[1],
         Susceptible_crop_stage_of_interest == input$impact
-      ) %>%
-      pull(Management_actions) %>%
+      ) %>% 
+      pull(Regional_considersation) %>%
       unique()
-    
+
     # add table caption
     output$tablecaption <- shiny::renderUI({
+      # browser()
       isolate({
-        HTML(
-          "<h4>Potential impacts during risk periods (red bars):</h4>",
-          sprintf("<h5>%s</h5>", values$impact1),
+        # the if statements are used to remove the html printin when there is no data
+        txt <- c(
+          if(!invalid(values$impact1) && !invalid(values$impact2)){
+            "<h4>Potential impacts during risk periods (red bars):</h4>"
+          },
+          if(!invalid(values$impact1)){
+            sprintf("<h5>%s</h5>", values$impact1)
+          },
           # "<br/>",
-          sprintf("<h5>%s</h5>", values$impact2),
-          "<hr/>",
-          sprintf("<h4>Management action (%s region):</h4>", input_coords$region[1]),
-          sprintf("<h5>%s - big larvae close to risk period</h5>", values$mngaction),
+          if(!invalid(values$impact2)){
+            sprintf("<h5>%s</h5>", values$impact2)
+          },
+          if(!invalid(values$mngaction)){
+            "<hr/>"
+          },
+          if(!invalid(values$mngaction)){
+            sprintf("<h4>Regional considersation (%s region):</h4>", input_coords$region[1])
+          },
+          if(!invalid(values$mngaction)){
+            sprintf("<h5>%s</h5>", values$mngaction)
+          },
           # "<br/>"
           "<hr/>"
         )
+        
+        HTML(txt)
+        
       })
     })
     
