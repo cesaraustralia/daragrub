@@ -49,8 +49,8 @@ knitr::include_graphics("phenology.png")
 ## Management action
 
 Potential impacts during risk periods (red bars): \
-*`r params$impact1`* \
-*`r params$impact2`*
+*`r ifelse(invalid(params$impact1), "No potential impacts are provided.", params$impact1)`* \
+*`r ifelse(invalid(params$impact2), "", params$impact2)`*
 \
 \
 Regional considersation (`r params$region` region): \
