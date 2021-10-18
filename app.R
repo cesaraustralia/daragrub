@@ -49,11 +49,11 @@ scenrio_table <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRfb4
   # drop_na() %>% 
   mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
 
-# if the google sheet is not read, read the local file
-if(nrow(scenrio_table) < 1 || !exists("scenrio_table")){
-  scenrio_table <- read_csv("data/pestimate_main_db.csv") %>%
-    mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
-}
+# # if the google sheet is not read, read the local file
+# if(nrow(scenrio_table) < 1 || !exists("scenrio_table")){
+#   scenrio_table <- read_csv("data/pestimate_main_db.csv") %>%
+#     mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
+# }
 
 # read regional data
 # regional <- read_csv("data/pestimate_db_regional.csv")
@@ -138,14 +138,15 @@ invalid <- function(x){
   }
 }
 
+
 # ui ----------------------------------------------------------------------
 ui <- shinyUI(
-  navbarPage("PESTIMATOR",
-    selected = "Monitoring assist", theme = shinytheme("journal"), # slate
+  navbarPage("Predict-A-Pest",
+    selected = "Pest life-stage", theme = shinytheme("journal"), # slate
 
     # Lifestage panel ---------------------------------------------------------
     tabPanel(
-      "Monitoring assist",
+      "Pest life-stage",
       column(
         4,
         selectInput("species",
@@ -423,11 +424,18 @@ server <- function(session, input, output) {
         Region == input_coords$region,
         Susceptible_crop_stage_of_interest == input$impact
       )
+    start_date <- lubridate::dmy(paste(date_filer$Start_date, curYear, sep = "-"))
+    end_date <- lubridate::dmy(paste(date_filer$End_date, curYear, sep = "-"))
+    # browser()
     updateDateRangeInput(
       session = session,
       inputId = "crop_dev",
-      start = lubridate::dmy(paste(date_filer$Start_date, curYear, sep = "-")),
-      end = lubridate::dmy(paste(date_filer$End_date, curYear, sep = "-"))
+      start = ifelse(is.na(start_date), 
+                     as.character(Sys.Date()), 
+                     as.character(start_date)),
+      end = ifelse(is.na(end_date), 
+                   as.character(Sys.Date() + 7), 
+                   as.character(end_date))
     )
   })
   ##*****************************************************
