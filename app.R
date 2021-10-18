@@ -46,7 +46,6 @@ for (bug in bugs) {
 # read scenario data, including pest names, cops, scenarios...
 # scenrio_table <- read_csv("data/pestimate_main_db.csv") %>%
 scenrio_table <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRfb4RrNC2Z6SJVPD4cFw24O7WEyVsncTzKH8ByjE3mVXj1xylkmgWsCWFDlniq93OEC5YaJxgserWH/pub?gid=2101234815&single=true&output=csv") %>% 
-  # drop_na() %>% 
   mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
 
 # # if the google sheet is not read, read the local file
@@ -775,7 +774,7 @@ server <- function(session, input, output) {
         Region == input_coords$region[1],
         Susceptible_crop_stage_of_interest == input$impact
       ) %>% 
-      pull(Regional_considersation) %>%
+      pull(Regional_consideration) %>%
       unique()
 
     # add table caption
@@ -798,7 +797,7 @@ server <- function(session, input, output) {
             "<hr/>"
           },
           if(!invalid(values$mngaction)){
-            sprintf("<h4>Regional considersation (%s region):</h4>", input_coords$region[1])
+            sprintf("<h4>Regional consideration (%s region):</h4>", input_coords$region[1])
           },
           if(!invalid(values$mngaction)){
             sprintf("<h5>%s</h5>", values$mngaction)
