@@ -1,6 +1,8 @@
 name: Push-to-EC2
 
-on: push
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -12,10 +14,10 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Deploy to my EC2 instance
-        uses: easingthemes/ssh-deploy@v2.1.5
+        uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           SOURCE: "./"
-          REMOTE_HOST: "ec2-54-66-2-40.ap-southeast-2.compute.amazonaws.com"
-          REMOTE_USER: "ubuntu"
+          REMOTE_HOST: ${{ secrets.AWS_DNS }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
           TARGET: "/srv/shiny-server/predict-a-pest"
