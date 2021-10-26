@@ -17,7 +17,7 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          SOURCE: "./"
+          SOURCE: "*"
           REMOTE_HOST: ${{ secrets.AWS_DNS }}
           REMOTE_USER: ${{ secrets.EC2_USER }}
           TARGET: "/srv/shiny-server/predict-a-pest"
