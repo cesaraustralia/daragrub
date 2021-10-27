@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  deploy:  
+  deploy:
     name: Push to EC2 Instance
     runs-on: ubuntu-latest
 
@@ -15,11 +15,11 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v1
 
-      - name: Deploy to Cesar EC2 instance
+      - name: Deploy to Cesar production EC2 instance
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           SOURCE: "*"
           REMOTE_HOST: ${{ secrets.AWS_DNS }}
           REMOTE_USER: ${{ secrets.EC2_USER }}
-          TARGET: "/srv/shiny-server/testing_app/"
+          TARGET: "/srv/shiny-server/predict-a-pest/"

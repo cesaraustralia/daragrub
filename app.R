@@ -316,8 +316,8 @@ server <- function(session, input, output) {
 
   # update the table
   observeEvent(to_listen1(), {
-
-        values$table <- scenrio_table %>%
+    
+    values$table <- scenrio_table %>%
       filter(
         Pest == input$species,
         Crop == input$crop # ,
