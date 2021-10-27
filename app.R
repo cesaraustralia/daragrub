@@ -15,7 +15,6 @@ library(viridis)
 library(DT)
 # options(shiny.usecairo = TRUE)
 
-
 # data prepration ---------------------------------------------------------
 # global function
 source("./getBug.R")
@@ -42,7 +41,6 @@ for (bug in bugs) {
 }
 
 
-
 # read scenario data, including pest names, cops, scenarios...
 # scenrio_table <- read_csv("data/pestimate_main_db.csv") %>%
 scenrio_table <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRfb4RrNC2Z6SJVPD4cFw24O7WEyVsncTzKH8ByjE3mVXj1xylkmgWsCWFDlniq93OEC5YaJxgserWH/pub?gid=2101234815&single=true&output=csv") %>% 
@@ -54,8 +52,6 @@ scenrio_table <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRfb4
 #     mutate(Link_to_resources = paste0("<a href='", Link_to_resources, "'>", "More information!", "</a>"))
 # }
 
-# read regional data
-# regional <- read_csv("data/pestimate_db_regional.csv")
 
 # points in Australia
 data("wrld_simpl", package = "maptools")
@@ -320,11 +316,8 @@ server <- function(session, input, output) {
 
   # update the table
   observeEvent(to_listen1(), {
-    # observeEvent(input$update, {
-    # if(input$crop == "Wheat")
-    #   browser()
 
-    values$table <- scenrio_table %>%
+        values$table <- scenrio_table %>%
       filter(
         Pest == input$species,
         Crop == input$crop # ,
@@ -474,7 +467,6 @@ server <- function(session, input, output) {
   })
 
 
-
   # set default values for click
   input_coords <- reactiveValues()
   input_coords$long <- 145.0
@@ -540,7 +532,6 @@ server <- function(session, input, output) {
       Tmax <- Tmax + input$temp
       Tmin <- Tmin + input$temp
     }
-
 
     # to reset the plot by updating
     values$df <- NULL
@@ -642,8 +633,6 @@ server <- function(session, input, output) {
     text_dt <- data.frame(
       x = mean(values$crop_line$date),
       y = last(data$type),
-      # y = ifelse(input$toggle, last(data$type), dplyr::last(levels(data$stage))),
-      # y = dplyr::last(levels(data$stage)),
       t = values$table %>%
         filter(Susceptible_crop_stage_of_interest == input$impact) %>%
         pull(Susceptible_crop_stage_of_interest)
@@ -661,7 +650,6 @@ server <- function(session, input, output) {
           pivot_longer(cols = 2:3) %>%
           mutate(stage = ifelse(name == "first", levels(data$stage)[1], levels(data$stage)[length(levels(data$stage))]))
         
-        # library(ggrepel)
         lbl <- data %>%
           group_by(type, stage) %>%
           summarise(x = mean(value), y = type)
@@ -781,7 +769,7 @@ server <- function(session, input, output) {
     output$tablecaption <- shiny::renderUI({
       # browser()
       isolate({
-        # the if statements are used to remove the html printin when there is no data
+        # the if statements are used to remove the html print in when there is no data
         txt <- c(
           if(!invalid(values$impact1) || !invalid(values$impact2)){
             "<h4>Potential impacts during risk periods (red bars):</h4>"
