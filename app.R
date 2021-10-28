@@ -26,7 +26,6 @@ Tmax <- terra::rast("data/mu_Tmax_for_DOY_ag10.tif")
 
 curYear <- format(Sys.time(), "%Y")
 
-
 bugs <- list.files("bugs/") %>%
   sapply(FUN = strsplit, "[.]") %>%
   map(pluck(1)) %>%
